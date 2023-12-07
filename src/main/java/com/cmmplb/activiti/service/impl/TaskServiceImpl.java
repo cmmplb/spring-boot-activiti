@@ -248,6 +248,13 @@ public class TaskServiceImpl implements TaskService {
         return true;
     }
 
+    @Override
+    public boolean entrustTask(String taskId, String userId) {
+        // 将此任务交给其它候选人办理该任务
+        taskService.setAssignee(taskId, userId);
+        return true;
+    }
+
     /**
      * 流程结束处理
      */

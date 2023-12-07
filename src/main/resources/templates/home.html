@@ -18,83 +18,78 @@
 </head>
 
 <body>
-<div id="app">
-    <!-- 通过基础的 24 分栏 -->
-    <!-- Row 组件 提供 gutter 属性来指定每一栏之间的间隔，默认间隔为 0。 -->
-    <div>
-        <el-row :gutter="20" class="content-card">
-            <el-col :span="6">
-                <el-card shadow="always">
-                    <div slot="header">
-                        <span>代办数量</span>
-                        <span style="float: right; padding: 3px 0">{{itemCount.incompleteCount}}</span>
-                    </div>
-                </el-card>
-            </el-col>
+    <div id="app">
+        <!-- 通过基础的 24 分栏 -->
+        <!-- Row 组件 提供 gutter 属性来指定每一栏之间的间隔，默认间隔为 0。 -->
+        <div>
+            <el-row :gutter="20" class="content-card">
+                <el-col :span="6">
+                    <el-card shadow="always">
+                        <div slot="header">
+                            <span>代办数量</span>
+                            <span style="float: right; padding: 3px 0">{{itemCount.incompleteCount}}</span>
+                        </div>
+                    </el-card>
+                </el-col>
 
-            <el-col :span="6">
-                <el-card shadow="always">
-                    <div slot="header">
-                        <span>已办数量</span>
-                        <span style="float: right; padding: 3px 0">{{itemCount.completedCount}}</span>
-                    </div>
-                </el-card>
-            </el-col>
+                <el-col :span="6">
+                    <el-card shadow="always">
+                        <div slot="header">
+                            <span>已办数量</span>
+                            <span style="float: right; padding: 3px 0">{{itemCount.completedCount}}</span>
+                        </div>
+                    </el-card>
+                </el-col>
 
-            <el-col :span="6">
-                <el-card shadow="always">
-                    <div slot="header">
-                        <span>请假数量</span>
-                        <span style="float: right; padding: 3px 0">{{itemCount.leaveCount}}</span>
-                    </div>
-                </el-card>
-            </el-col>
+                <el-col :span="6">
+                    <el-card shadow="always">
+                        <div slot="header">
+                            <span>请假数量</span>
+                            <span style="float: right; padding: 3px 0">{{itemCount.leaveCount}}</span>
+                        </div>
+                    </el-card>
+                </el-col>
 
-            <el-col :span="6">
-                <el-card shadow="always">
-                    <div slot="header">
-                        <span>出差数量</span>
-                        <span style="float: right; padding: 3px 0">{{itemCount.evectionCount}}</span>
-                    </div>
-                </el-card>
-            </el-col>
-        </el-row>
-        <el-row :gutter="20" class="content-card">
-            <el-col :span="24">
-                <el-card shadow="always" style="margin: 30px 0">
-                    <div style="margin-bottom: 10px">
-                        <!-- 添加一个切换统计类型:1-24小时;2-近30天; -->
-                        <el-switch
-                                v-model="type"
-                                active-text="24小时"
-                                inactive-text="近30天"
-                                @change="handlerChange"
-                        >
-                        </el-switch>
-                    </div>
-                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
-                    <div id="main" style="height:400px;"></div>
-                </el-card>
-            </el-col>
-        </el-row>
+                <el-col :span="6">
+                    <el-card shadow="always">
+                        <div slot="header">
+                            <span>出差数量</span>
+                            <span style="float: right; padding: 3px 0">{{itemCount.evectionCount}}</span>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+            <el-row :gutter="20" class="content-card">
+                <el-col :span="24">
+                    <el-card shadow="always" style="margin: 30px 0">
+                        <div style="margin-bottom: 10px">
+                            <!-- 添加一个切换统计类型:1-24小时;2-近30天; -->
+                            <el-switch v-model="type" active-text="24小时" inactive-text="近30天" @change="handlerChange">
+                            </el-switch>
+                        </div>
+                        <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                        <div id="main" style="height:400px;"></div>
+                    </el-card>
+                </el-col>
+            </el-row>
 
-        <el-row :gutter="20" class="content-card">
-            <el-col :span="12">
-                <el-card shadow="always">
-                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
-                    <div id="main1" style="height:250px;"></div>
-                </el-card>
-            </el-col>
+            <el-row :gutter="20" class="content-card">
+                <el-col :span="12">
+                    <el-card shadow="always">
+                        <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                        <div id="main1" style="height:250px;"></div>
+                    </el-card>
+                </el-col>
 
-            <el-col :span="12">
-                <el-card shadow="always">
-                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
-                    <div id="main2" style="height:250px;"></div>
-                </el-card>
-            </el-col>
-        </el-row>
+                <el-col :span="12">
+                    <el-card shadow="always">
+                        <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                        <div id="main2" style="height:250px;"></div>
+                    </el-card>
+                </el-col>
+            </el-row>
+        </div>
     </div>
-</div>
 </body>
 <script>
     new Vue({
@@ -236,11 +231,11 @@
                             type: 'pie',
                             radius: '50%',
                             data: [
-                                {value: 1048, name: '请假申请'},
-                                {value: 735, name: '采购申请'},
-                                {value: 580, name: '加班申请'},
-                                {value: 484, name: '出库申请'},
-                                {value: 300, name: '入库申请'}
+                                { value: 1048, name: '请假申请' },
+                                { value: 735, name: '采购申请' },
+                                { value: 580, name: '加班申请' },
+                                { value: 484, name: '出库申请' },
+                                { value: 300, name: '入库申请' }
                             ],
                             emphasis: {
                                 itemStyle: {
@@ -279,11 +274,11 @@
                             type: 'pie',
                             radius: '50%',
                             data: [
-                                {value: 1048, name: '请假申请'},
-                                {value: 735, name: '采购申请'},
-                                {value: 580, name: '加班申请'},
-                                {value: 484, name: '出库申请'},
-                                {value: 300, name: '入库申请'}
+                                { value: 1048, name: '请假申请' },
+                                { value: 735, name: '采购申请' },
+                                { value: 580, name: '加班申请' },
+                                { value: 484, name: '出库申请' },
+                                { value: 300, name: '入库申请' }
                             ],
                             emphasis: {
                                 itemStyle: {
@@ -308,4 +303,5 @@
         margin-right: 0 !important;
     }
 </style>
+
 </html>

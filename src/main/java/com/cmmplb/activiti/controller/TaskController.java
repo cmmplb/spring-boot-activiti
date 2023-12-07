@@ -10,6 +10,7 @@ import com.cmmplb.activiti.vo.CompletedTaskVO;
 import com.cmmplb.activiti.vo.IncompleteTaskVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,5 +49,15 @@ public class TaskController {
     public Result<Boolean> handleTask(@PathVariable(value = "id") String id, @RequestBody HandleTaskDTO dto) {
         dto.setId(id);
         return ResultUtil.success(taskService.handleTask(dto));
+    }
+
+    @ApiOperation("委托他人办理")
+    @PostMapping(value = "/entrust/{id}/{userId}")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", paramType = "query", value = "任务id", required = true, dataType = "Long", dataTypeClass = Long.class, example = "1"),
+            @ApiImplicitParam(name = "userId", paramType = "query", value = "用户id", required = true, dataType = "Long", dataTypeClass = Long.class, example = "1")
+    })
+    public Result<Boolean> entrustTask(@PathVariable(value = "id") String id, @PathVariable(value = "userId") String userId) {
+        return ResultUtil.success(taskService.entrustTask(id, userId));
     }
 }

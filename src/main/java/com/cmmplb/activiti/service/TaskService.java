@@ -18,4 +18,6 @@ public interface TaskService {
     PageResult<CompletedTaskVO> getCompletedByPaged(TaskQueryDTO dto);
 
     boolean handleTask(HandleTaskDTO dto);
+
+    boolean entrustTask(String taskId, String userId);
 }

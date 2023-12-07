@@ -19,168 +19,157 @@
 </head>
 
 <body>
-<div id="app">
-    <div>
-        <!-- 搜索区域 -->
-        <el-card class="search" shadow="always">
-            <!-- 搜索表单区域 -->
-            <!-- inline 属性可以让表单域变为行内的表单域 -->
-            <el-form inline :model="searchForm" class="search-form" size="small">
-                <el-row>
-                    <el-col :span="4">
-                        <el-form-item label="关键词">
-                            <el-input v-model="searchForm.keywords" clearable placeholder="名称"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-form-item>
-                            <el-button type="primary" icon="el-icon-search" @click="handlerSearch">查 询</el-button>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form>
-        </el-card>
+    <div id="app">
+        <div>
+            <!-- 搜索区域 -->
+            <el-card class="search" shadow="always">
+                <!-- 搜索表单区域 -->
+                <!-- inline 属性可以让表单域变为行内的表单域 -->
+                <el-form inline :model="searchForm" class="search-form" size="small">
+                    <el-row>
+                        <el-col :span="4">
+                            <el-form-item label="关键词">
+                                <el-input v-model="searchForm.keywords" clearable placeholder="名称"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="6">
+                            <el-form-item>
+                                <el-button type="primary" icon="el-icon-search" @click="handlerSearch">查 询</el-button>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form>
+            </el-card>
 
-        <el-card class="content" shadow="always">
-            <!-- 新增按钮区域 -->
-            <el-form>
-                <el-form-item style="text-align: right;">
-                    <el-button icon="el-icon-plus" type="primary" plain size="small" @click="handlerUpload">
-                        上传流程文件
-                    </el-button>
-                </el-form-item>
-            </el-form>
+            <el-card class="content" shadow="always">
+                <!-- 新增按钮区域 -->
+                <el-form>
+                    <el-form-item style="text-align: right;">
+                        <el-button icon="el-icon-plus" type="primary" plain size="small" @click="handlerUpload">
+                            上传流程文件
+                        </el-button>
+                    </el-form-item>
+                </el-form>
 
-            <!-- 表格 -->
-            <el-table stripe border v-loading="loading" :data="data" align="center" style="width: 100%;">
-                <!-- 表头 -->
-                <el-table-column label="序号" type="index" width="100" :resizable="false" align="center">
-                </el-table-column>
-                <template v-for="(column, index) in columns">
-                    <el-table-column :key="index" :prop="column.prop" :label="column.label" :width="column.width"
-                                     align="center" :show-overflow-tooltip="column.showOverflowTooltip">
-                        <!-- 添加一个tag标签 -->
+                <!-- 表格 -->
+                <el-table stripe border v-loading="loading" :data="data" align="center" style="width: 100%;">
+                    <!-- 表头 -->
+                    <el-table-column label="序号" type="index" width="100" :resizable="false" align="center">
+                    </el-table-column>
+                    <template v-for="(column, index) in columns">
+                        <el-table-column :key="index" :prop="column.prop" :label="column.label" :width="column.width"
+                            align="center" :show-overflow-tooltip="column.showOverflowTooltip">
+                            <!-- 添加一个tag标签 -->
+                            <template v-slot="scope">
+                                <div v-if="column.prop === 'isSuspended' ">
+                                    <el-tag :type="scope.row.isSuspended ? 'danger' : 'success'" size="small">
+                                        <span>{{scope.row.isSuspended ? '挂起' : '激活'}}</span>
+                                    </el-tag>
+                                </div>
+                                <span v-else>
+                                    {{ scope.row[scope.column.property] }}
+                                </span>
+                            </template>
+                        </el-table-column>
+                    </template>
+                    <!-- 按钮 -->
+                    <el-table-column fixed="right" align="center" label="操作" width="220">
                         <template v-slot="scope">
-                            <div v-if="column.prop === 'isSuspended' ">
-                                <el-tag :type="scope.row.isSuspended ? 'danger' : 'success'" size="small">
-                                    <span>{{scope.row.isSuspended ? '挂起' : '激活'}}</span>
-                                </el-tag>
-                            </div>
-                            <span v-else>
-                                  {{ scope.row[scope.column.property] }}
-                            </span>
+                            <el-button icon="el-icon-edit-outline" @click="handlerShowDefine(scope.row)" type="text"
+                                size="small" style="color: #ff8940">
+                                查看定义文件
+                            </el-button>
+                            <el-button icon="el-icon-s-promotion" @click="handlerShowProcessChart(scope.row)"
+                                type="text" size="small" style="color: rgb(78,193,242)">
+                                查看流程图
+                            </el-button>
+                            <el-button :icon="scope.row.isSuspended ? 'el-icon-video-play' : 'el-icon-video-pause'"
+                                @click="handlerSuspended(scope.row)" type="text" size="small"
+                                :style="'color: ' + (scope.row.isSuspended ? 'rgba(70,255,64,0.63)' : 'blue')">
+                                {{ scope.row.isSuspended ? '激活' : '挂起'}}
+                            </el-button>
+                            <el-button icon="el-icon-s-flag" @click="handlerExchangeModel(scope.row)" type="text"
+                                size="small" style="color: #b700ff">
+                                转为模型
+                            </el-button>
+                            <el-button icon="el-icon-delete" @click="handlerDelete(scope.row)" type="text" size="small"
+                                style="color: red">
+                                删除
+                            </el-button>
                         </template>
                     </el-table-column>
-                </template>
-                <!-- 按钮 -->
-                <el-table-column fixed="right" align="center" label="操作" width="220">
-                    <template v-slot="scope">
-                        <el-button icon="el-icon-edit-outline" @click="handlerShowDefine(scope.row)" type="text"
-                                   size="small" style="color: #ff8940">
-                            查看定义文件
-                        </el-button>
-                        <el-button icon="el-icon-s-promotion" @click="handlerShowProcessChart(scope.row)" type="text"
-                                   size="small" style="color: rgb(78,193,242)">
-                            查看流程图
-                        </el-button>
-                        <el-button :icon="scope.row.isSuspended ? 'el-icon-video-play' : 'el-icon-video-pause'"
-                                   @click="handlerSuspended(scope.row)" type="text" size="small"
-                                   :style="'color: ' + (scope.row.isSuspended ? 'rgba(70,255,64,0.63)' : 'blue')">
-                            {{ scope.row.isSuspended ? '激活' : '挂起'}}
-                        </el-button>
-                        <el-button icon="el-icon-s-flag" @click="handlerExchangeModel(scope.row)" type="text"
-                                   size="small"
-                                   style="color: #b700ff">
-                            转为模型
-                        </el-button>
-                        <el-button icon="el-icon-delete" @click="handlerDelete(scope.row)" type="text" size="small"
-                                   style="color: red">
-                            删除
-                        </el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
-        </el-card>
+                </el-table>
+            </el-card>
 
-        <!-- 分页信息 -->
-        <div class='pagination-container'>
-            <el-pagination :background="false" :current-page.sync="paginationData.current"
-                           :page-size.sync="paginationData.size" layout="total, sizes, prev, pager, next, jumper"
-                           :page-sizes="[1, 5, 10, 20, 30, 50]" :total="paginationData.total" v-bind="$attrs"
-                           @size-change="handleSizeChange" @current-change="handleCurrentChange">
-            </el-pagination>
+            <!-- 分页信息 -->
+            <div class='pagination-container'>
+                <el-pagination :background="false" :current-page.sync="paginationData.current"
+                    :page-size.sync="paginationData.size" layout="total, sizes, prev, pager, next, jumper"
+                    :page-sizes="[1, 5, 10, 20, 30, 50]" :total="paginationData.total" v-bind="$attrs"
+                    @size-change="handleSizeChange" @current-change="handleCurrentChange">
+                </el-pagination>
+            </div>
+
+            <!-- 文件上传 -->
+            <el-dialog title="上传流程文件" :visible="visible" width="500px" :before-close="handleClose">
+                <el-upload class="upload" ref="upload" drag multiple :http-request="upload" action="/deploy/upload"
+                    :auto-upload="false" :file-list="fileList">
+                    <i class="el-icon-upload"></i>
+                    <div class="el-upload__text">将流程文件拖到此处，或<em>点击上传</em></div>
+                    <div class="el-upload__tip" slot="tip">提示：仅允许导入"bpmn"、"xml"或"zip"格式文件！</div>
+                </el-upload>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="handleClose">取 消</el-button>
+                    <el-button type="primary" @click="handlerConfirm">确 定</el-button>
+                </div>
+            </el-dialog>
+
+            <!-- 挂起/激活 -->
+            <el-dialog :title="isSuspended ? '激活' : '挂起'" :visible="isSuspendedVisible" width="600px"
+                :before-close="handleSuspendedClose">
+                <el-form label-width="140px" ref="dataForm" :model="form" :rules="rules">
+                    <el-row>
+                        <el-col :span="22">
+                            <el-form-item :label="(isSuspended ? '激活' : '挂起') + '关联流程实例'"
+                                prop="activateProcessInstances">
+                                <el-switch v-model="form.activateProcessInstances" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="22">
+                            <el-form-item label="定时激活时间" prop="activationDate">
+                                <el-date-picker v-model="form.activationDate" type="datetime" placeholder="请选择定时激活时间"
+                                    value-format="yyyy-MM-dd HH:mm:ss" />
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="handleSuspendedClose">取 消</el-button>
+                    <el-button type="primary" @click="handlerSuspendedConfirm">确 定</el-button>
+                </div>
+            </el-dialog>
+
+            <!-- 流程图预览 -->
+            <el-dialog title="流程图预览" :visible="processChartVisible" width="1100px"
+                :before-close="handlerCloseProcessChart">
+                <img :src="img">
+                <div slot="footer" class="dialog-footer">
+                    <el-button type="primary" @click="handlerCloseProcessChart">关 闭</el-button>
+                </div>
+            </el-dialog>
+
+            <!-- 流程定义预览 -->
+            <el-dialog title="流程定义预览" class="process-define" :visible="processDefineVisible" width="85%"
+                :before-close="handlerCloseProcessDefine">
+                <pre><code class="hljs" v-html="highlightedCode()"></code></pre>
+                <div slot="footer" class="dialog-footer">
+                    <el-button type="primary" @click="handlerCloseProcessDefine">关 闭</el-button>
+                </div>
+            </el-dialog>
         </div>
-
-        <!-- 文件上传 -->
-        <el-dialog title="上传流程文件" :visible="visible" width="500px" :before-close="handleClose">
-            <el-upload
-                    class="upload"
-                    ref="upload"
-                    drag
-                    multiple
-                    :http-request="upload"
-                    action="/deploy/upload"
-                    :auto-upload="false"
-                    :file-list="fileList">
-                <i class="el-icon-upload"></i>
-                <div class="el-upload__text">将流程文件拖到此处，或<em>点击上传</em></div>
-                <div class="el-upload__tip" slot="tip">提示：仅允许导入"bpmn"、"xml"或"zip"格式文件！</div>
-            </el-upload>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="handleClose">取 消</el-button>
-                <el-button type="primary" @click="handlerConfirm">确 定</el-button>
-            </div>
-        </el-dialog>
-
-        <!-- 挂起/激活 -->
-        <el-dialog :title="isSuspended ? '激活' : '挂起'" :visible="isSuspendedVisible" width="600px"
-                   :before-close="handleSuspendedClose">
-            <el-form label-width="140px" ref="dataForm" :model="form" :rules="rules">
-                <el-row>
-                    <el-col :span="22">
-                        <el-form-item :label="(isSuspended ? '激活' : '挂起') + '关联流程实例'"
-                                      prop="activateProcessInstances">
-                            <el-switch v-model="form.activateProcessInstances"/>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="22">
-                        <el-form-item label="定时激活时间" prop="activationDate">
-                            <el-date-picker v-model="form.activationDate"
-                                            type="datetime"
-                                            placeholder="请选择定时激活时间"
-                                            value-format="yyyy-MM-dd HH:mm:ss"
-                            />
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="handleSuspendedClose">取 消</el-button>
-                <el-button type="primary" @click="handlerSuspendedConfirm">确 定</el-button>
-            </div>
-        </el-dialog>
-
-        <!-- 流程图预览 -->
-        <el-dialog title="流程图预览" :visible="processChartVisible" width="1100px"
-                   :before-close="handlerCloseProcessChart">
-            <img :src="img">
-            <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="handlerCloseProcessChart">关 闭</el-button>
-            </div>
-        </el-dialog>
-
-        <!-- 流程定义预览 -->
-        <el-dialog title="流程定义预览" class="process-define" :visible="processDefineVisible" width="85%"
-                   :before-close="handlerCloseProcessDefine">
-            <pre><code class="hljs" v-html="highlightedCode()"></code></pre>
-            <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="handlerCloseProcessDefine">关 闭</el-button>
-            </div>
-        </el-dialog>
     </div>
-</div>
 </body>
 <script>
     new Vue({
@@ -425,7 +414,7 @@
             // 获取列表
             async getData() {
                 this.loading = true;
-                let res = await axios.post('/deploy/paged', {...this.searchForm, ...this.paginationData});
+                let res = await axios.post('/deploy/paged', { ...this.searchForm, ...this.paginationData });
                 if (res.data.code === 200 && res.data.data) {
                     this.data = res.data.data.rows;
                     this.paginationData.total = res.data.data.total;
@@ -436,7 +425,7 @@
             },
             // 页码切换
             pagination(data) {
-                this.paginationData = {...this.paginationData, current: data.current};
+                this.paginationData = { ...this.paginationData, current: data.current };
                 this.getData();
             },
             /**
@@ -444,14 +433,14 @@
              * @param val 每页条数
              */
             handleSizeChange(val) {
-                this.pagination({current: this.paginationData.currentPage, size: val});
+                this.pagination({ current: this.paginationData.currentPage, size: val });
             },
             /**
              * currentPage 改变时会触发
              * @param val 当前页
              */
             handleCurrentChange(val) {
-                this.pagination({current: val, size: this.paginationData.pageSize});
+                this.pagination({ current: val, size: this.paginationData.pageSize });
             },
         }
     })

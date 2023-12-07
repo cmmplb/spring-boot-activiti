@@ -16,213 +16,196 @@
 </head>
 
 <body>
-<div id="app">
-    <div>
-        <!-- 搜索区域 -->
-        <el-card class="search" shadow="always">
-            <!-- 搜索表单区域 -->
-            <!-- inline 属性可以让表单域变为行内的表单域 -->
-            <el-form inline :model="searchForm" class="search-form" size="small">
-                <el-row>
-                    <el-col :span="4">
-                        <el-form-item label="关键词">
-                            <el-input v-model="searchForm.keywords" clearable placeholder="名称"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="4">
-                        <el-form-item label="数据范围">
-                            <el-select v-model="searchForm.scope"
-                                       clearable
-                                       placeholder="请选择数据范围"
-                                       @change="selectChange"
-                            >
-                                <el-option label="我的已办" :value="1"></el-option>
-                                <el-option label="全部已办" :value="2"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="4">
-                        <el-form-item label="类型">
-                            <el-select v-model="searchForm.type"
-                                       clearable
-                                       placeholder="请选择类型"
-                                       @change="selectChange"
-                            >
-                                <el-option label="请假" :value="1"></el-option>
-                                <el-option label="出差" :value="2"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-form-item>
-                            <el-button type="primary" icon="el-icon-search" @click="handlerSearch">查 询</el-button>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form>
-        </el-card>
+    <div id="app">
+        <div>
+            <!-- 搜索区域 -->
+            <el-card class="search" shadow="always">
+                <!-- 搜索表单区域 -->
+                <!-- inline 属性可以让表单域变为行内的表单域 -->
+                <el-form inline :model="searchForm" class="search-form" size="small">
+                    <el-row>
+                        <el-col :span="4">
+                            <el-form-item label="关键词">
+                                <el-input v-model="searchForm.keywords" clearable placeholder="名称"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-form-item label="数据范围">
+                                <el-select v-model="searchForm.scope" clearable placeholder="请选择数据范围"
+                                    @change="selectChange">
+                                    <el-option label="我的已办" :value="1"></el-option>
+                                    <el-option label="全部已办" :value="2"></el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-form-item label="类型">
+                                <el-select v-model="searchForm.type" clearable placeholder="请选择类型"
+                                    @change="selectChange">
+                                    <el-option label="请假" :value="1"></el-option>
+                                    <el-option label="出差" :value="2"></el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="6">
+                            <el-form-item>
+                                <el-button type="primary" icon="el-icon-search" @click="handlerSearch">查 询</el-button>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form>
+            </el-card>
 
-        <el-card class="content" shadow="always">
-            <!-- 表格 -->
-            <el-table stripe border v-loading="loading" :data="data" align="center" style="width: 100%;">
-                <!-- 表头 -->
-                <el-table-column label="序号" type="index" width="100" :resizable="false" align="center">
-                </el-table-column>
-                <template v-for="(column, index) in columns">
-                    <el-table-column :key="index" :prop="column.prop" :label="column.label" :width="column.width"
-                                     align="center" :show-overflow-tooltip="column.showOverflowTooltip">
+            <el-card class="content" shadow="always">
+                <!-- 表格 -->
+                <el-table stripe border v-loading="loading" :data="data" align="center" style="width: 100%;">
+                    <!-- 表头 -->
+                    <el-table-column label="序号" type="index" width="100" :resizable="false" align="center">
                     </el-table-column>
-                </template>
-                <!-- 按钮 -->
-                <el-table-column fixed="right" align="center" label="操作" width="220">
-                    <template v-slot="scope">
-                        <el-button icon="el-icon-tickets" @click="handlerDetails(scope.row)" type="text"
-                                   size="small" style="color: rgb(78,81,242)">
-                            详情
-                        </el-button>
+                    <template v-for="(column, index) in columns">
+                        <el-table-column :key="index" :prop="column.prop" :label="column.label" :width="column.width"
+                            align="center" :show-overflow-tooltip="column.showOverflowTooltip">
+                        </el-table-column>
                     </template>
-                </el-table-column>
-            </el-table>
-        </el-card>
+                    <!-- 按钮 -->
+                    <el-table-column fixed="right" align="center" label="操作" width="220">
+                        <template v-slot="scope">
+                            <el-button icon="el-icon-tickets" @click="handlerDetails(scope.row)" type="text"
+                                size="small" style="color: rgb(78,81,242)">
+                                详情
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-card>
 
-        <!-- 分页信息 -->
-        <div class='pagination-container'>
-            <el-pagination :background="false" :current-page.sync="paginationData.current"
-                           :page-size.sync="paginationData.size" layout="total, sizes, prev, pager, next, jumper"
-                           :page-sizes="[1, 5, 10, 20, 30, 50]" :total="paginationData.total" v-bind="$attrs"
-                           @size-change="handleSizeChange" @current-change="handleCurrentChange">
-            </el-pagination>
+            <!-- 分页信息 -->
+            <div class='pagination-container'>
+                <el-pagination :background="false" :current-page.sync="paginationData.current"
+                    :page-size.sync="paginationData.size" layout="total, sizes, prev, pager, next, jumper"
+                    :page-sizes="[1, 5, 10, 20, 30, 50]" :total="paginationData.total" v-bind="$attrs"
+                    @size-change="handleSizeChange" @current-change="handleCurrentChange">
+                </el-pagination>
+            </div>
+
+            <!-- 请假申请表单回显 -->
+            <el-dialog title="请假申请信息" :visible="leaveApplyVisible" width="1400px" :before-close="handleLeaveApplyClose">
+                <el-form disabled label-width="100px" ref="dataForm" :model="applyDetails.leave">
+                    <el-row>
+                        <el-col :span="8">
+                            <el-form-item label="标题">
+                                <el-input v-model="applyDetails.title"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                            <el-form-item label="申请时间">
+                                <el-input v-model="applyDetails.applyTime"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="7">
+                            <el-form-item label="申请人">
+                                <el-input v-model="applyDetails.userName"></el-input>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="23">
+                            <el-form-item label="请假说明">
+                                <el-input v-model="applyDetails.reason" type="textarea" placeholder="请输入请假说明">
+                                </el-input>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="23">
+                            <el-form-item label="请假日期">
+                                <el-table stripe border align="center" :data="applyDetails.leave.leaveDateList"
+                                    class="table-content">
+                                    <el-table-column label="序号" type="index" width="50" :resizable="false"
+                                        align="center"></el-table-column>
+
+                                    <el-table-column prop="userName" label="请假人" align="center"></el-table-column>
+
+                                    <el-table-column prop="typeName" label="请假类型" width="170" align="center">
+                                    </el-table-column>
+
+                                    <el-table-column prop="startTime" label="开始时间" width="220" align="center">
+                                    </el-table-column>
+
+                                    <el-table-column prop="endTime" label="结束时间" width="220" align="center">
+                                    </el-table-column>
+
+                                    <el-table-column prop="durationToHour" label="时长(h)" align="center">
+                                    </el-table-column>
+
+                                    <el-table-column prop="durationToDay" label="时长(8h/人天)" align="center">
+                                    </el-table-column>
+                                </el-table>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="handleLeaveApplyClose">关 闭</el-button>
+                </div>
+            </el-dialog>
+
+            <!-- 出差申请表单回显 -->
+            <el-dialog title="出差申请信息" :visible="evectionApplyVisible" width="1400px"
+                :before-close="handleEvectionApplyClose">
+                <el-form disabled label-width="100px" ref="dataForm" :model="applyDetails.evection">
+                    <el-row>
+                        <el-col :span="8">
+                            <el-form-item label="标题">
+                                <el-input v-model="applyDetails.title"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                            <el-form-item label="申请时间">
+                                <el-input v-model="applyDetails.applyTime"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="7">
+                            <el-form-item label="申请人">
+                                <el-input v-model="applyDetails.userName"></el-input>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="23">
+                            <el-form-item label="出差说明">
+                                <el-input v-model="applyDetails.reason" type="textarea" placeholder="请输入出差说明">
+                                </el-input>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="23">
+                            <el-form-item label="开始时间" prop="startTime">
+                                <el-date-picker v-model="applyDetails.evection.startTime" type="datetime"
+                                    placeholder="请选择开始时间" value-format="yyyy-MM-dd HH:mm:ss"
+                                    style="width: 200px;text-align: center">
+                                </el-date-picker>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="23">
+                            <el-form-item label="结束时间" prop="endTime">
+                                <el-date-picker v-model="applyDetails.evection.endTime" type="datetime"
+                                    placeholder="请选择结束时间" value-format="yyyy-MM-dd HH:mm:ss"
+                                    style="width: 200px;text-align: center">
+                                </el-date-picker>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="handleEvectionApplyClose">关 闭</el-button>
+                </div>
+            </el-dialog>
         </div>
-
-        <!-- 请假申请表单回显 -->
-        <el-dialog title="请假申请信息" :visible="leaveApplyVisible" width="1400px"
-                   :before-close="handleLeaveApplyClose">
-            <el-form disabled label-width="100px" ref="dataForm" :model="applyDetails.leave">
-                <el-row>
-                    <el-col :span="8">
-                        <el-form-item label="标题">
-                            <el-input v-model="applyDetails.title"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="申请时间">
-                            <el-input v-model="applyDetails.applyTime"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="7">
-                        <el-form-item label="申请人">
-                            <el-input v-model="applyDetails.userName"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="23">
-                        <el-form-item label="请假说明">
-                            <el-input v-model="applyDetails.reason" type="textarea"
-                                      placeholder="请输入请假说明"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="23">
-                        <el-form-item label="请假日期">
-                            <el-table
-                                    stripe
-                                    border
-                                    align="center"
-                                    :data="applyDetails.leave.leaveDateList"
-                                    class="table-content"
-                            >
-                                <el-table-column label="序号" type="index" width="50" :resizable="false"
-                                                 align="center"></el-table-column>
-
-                                <el-table-column prop="userName" label="请假人" align="center"></el-table-column>
-
-                                <el-table-column prop="typeName" label="请假类型" width="170"
-                                                 align="center"></el-table-column>
-
-                                <el-table-column prop="startTime" label="开始时间" width="220"
-                                                 align="center"></el-table-column>
-
-                                <el-table-column prop="endTime" label="结束时间" width="220"
-                                                 align="center"></el-table-column>
-
-                                <el-table-column prop="durationToHour" label="时长(h)" align="center"></el-table-column>
-
-                                <el-table-column prop="durationToDay" label="时长(8h/人天)"
-                                                 align="center"></el-table-column>
-                            </el-table>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="handleLeaveApplyClose">关 闭</el-button>
-            </div>
-        </el-dialog>
-
-        <!-- 出差申请表单回显 -->
-        <el-dialog title="出差申请信息" :visible="evectionApplyVisible" width="1400px"
-                   :before-close="handleEvectionApplyClose">
-            <el-form disabled label-width="100px" ref="dataForm" :model="applyDetails.evection">
-                <el-row>
-                    <el-col :span="8">
-                        <el-form-item label="标题">
-                            <el-input v-model="applyDetails.title"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="申请时间">
-                            <el-input v-model="applyDetails.applyTime"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="7">
-                        <el-form-item label="申请人">
-                            <el-input v-model="applyDetails.userName"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="23">
-                        <el-form-item label="出差说明">
-                            <el-input v-model="applyDetails.reason" type="textarea"
-                                      placeholder="请输入出差说明"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="23">
-                        <el-form-item label="开始时间" prop="startTime">
-                            <el-date-picker v-model="applyDetails.evection.startTime"
-                                            type="datetime"
-                                            placeholder="请选择开始时间"
-                                            value-format="yyyy-MM-dd HH:mm:ss"
-                                            style="width: 200px;text-align: center"
-                            >
-                            </el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="23">
-                        <el-form-item label="结束时间" prop="endTime">
-                            <el-date-picker v-model="applyDetails.evection.endTime"
-                                            type="datetime"
-                                            placeholder="请选择结束时间"
-                                            value-format="yyyy-MM-dd HH:mm:ss"
-                                            style="width: 200px;text-align: center"
-                            >
-                            </el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click="handleEvectionApplyClose">关 闭</el-button>
-            </div>
-        </el-dialog>
     </div>
-</div>
 </body>
 <script>
     new Vue({
@@ -232,7 +215,7 @@
                 // 表单校验
                 rules: {
                     startTime: [
-                        {required: true, message: '请选择开始时间', trigger: 'blur'},
+                        { required: true, message: '请选择开始时间', trigger: 'blur' },
                     ],
                 },
                 // 列表表头
@@ -412,7 +395,7 @@
                 } else {
                     this.searchForm.userId = ''
                 }
-                let res = await axios.post('/task/completed/paged', {...this.searchForm, ...this.paginationData});
+                let res = await axios.post('/task/completed/paged', { ...this.searchForm, ...this.paginationData });
                 if (res.data.code === 200 && res.data.data) {
                     this.data = res.data.data.rows;
                     this.paginationData.total = res.data.data.total;
@@ -423,7 +406,7 @@
             },
             // 页码切换
             pagination(data) {
-                this.paginationData = {...this.paginationData, current: data.current};
+                this.paginationData = { ...this.paginationData, current: data.current };
                 this.getData();
             },
             /**
@@ -431,14 +414,14 @@
              * @param val 每页条数
              */
             handleSizeChange(val) {
-                this.pagination({current: this.paginationData.currentPage, size: val});
+                this.pagination({ current: this.paginationData.currentPage, size: val });
             },
             /**
              * currentPage 改变时会触发
              * @param val 当前页
              */
             handleCurrentChange(val) {
-                this.pagination({current: val, size: this.paginationData.pageSize});
+                this.pagination({ current: val, size: this.paginationData.pageSize });
             },
         }
     })

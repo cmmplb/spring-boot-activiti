@@ -17,10 +17,10 @@
 </head>
 
 <body>
-<div id="app">
-    <el-container style="height: 1020px; border: 1px solid #eee">
-        <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
-            <!--
+    <div id="app">
+        <el-container style="height: 1020px; border: 1px solid #eee">
+            <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+                <!--
             参数	                    说明                            类型	           可选值                   默认值
            mode	                    模式	                          string	      horizontal,vertical	      vertical
            theme	                    主题色	                        string	      light,dark	              light
@@ -35,48 +35,47 @@
 
            collapse        监控菜单的折叠true缩进false展开            boolean            —                       false
         -->
-            <el-menu unique-opened mode="vertical" :default-active="menu.url" :show-timeout="200"
-                     :collapse="false">
-                <template v-for="menu in menuList">
-                    <!-- 无子菜单 -->
-                    <el-menu-item v-if="validateNull(menu.children)" :index="menu.url" @click="handlerClick(menu)">
-                        <i :class="menu.icon"></i>
-                        <span slot="title">{{ menu.name }}</span>
-                    </el-menu-item>
-                    <!-- 有子菜单 -->
-                    <el-submenu v-else :index="menu.url">
-
-                        <template slot="title">
+                <el-menu unique-opened mode="vertical" :default-active="menu.url" :show-timeout="200" :collapse="false">
+                    <template v-for="menu in menuList">
+                        <!-- 无子菜单 -->
+                        <el-menu-item v-if="validateNull(menu.children)" :index="menu.url" @click="handlerClick(menu)">
                             <i :class="menu.icon"></i>
                             <span slot="title">{{ menu.name }}</span>
-                        </template>
+                        </el-menu-item>
+                        <!-- 有子菜单 -->
+                        <el-submenu v-else :index="menu.url">
 
-                        <template v-for="child in menu.children">
-                            <el-menu-item :index="child.url" @click="handlerClick(child)">
-                                <i :class="child.icon"></i>
-                                <span slot="title">{{ child.name }}</span>
-                            </el-menu-item>
-                        </template>
-                    </el-submenu>
-                </template>
-            </el-menu>
-        </el-aside>
+                            <template slot="title">
+                                <i :class="menu.icon"></i>
+                                <span slot="title">{{ menu.name }}</span>
+                            </template>
 
-        <el-container>
-            <el-header style="text-align: right; height: 20px; font-size: 12px; cursor:pointer;">
-                <el-dropdown trigger="click" @command="handleCommand">
-                    <i class="el-icon-user" style="margin-right: 15px">当前用户：{{currentUser.name}}</i>
-                    <el-dropdown-menu slot="dropdown">
-                        <template v-for="user in userList">
-                            <el-dropdown-item :command="user.id">{{user.name}}</el-dropdown-item>
-                        </template>
-                    </el-dropdown-menu>
-                </el-dropdown>
-            </el-header>
+                            <template v-for="child in menu.children">
+                                <el-menu-item :index="child.url" @click="handlerClick(child)">
+                                    <i :class="child.icon"></i>
+                                    <span slot="title">{{ child.name }}</span>
+                                </el-menu-item>
+                            </template>
+                        </el-submenu>
+                    </template>
+                </el-menu>
+            </el-aside>
 
-            <el-main class="mainContent">
-                <iframe class="iframe_content" width="100%" height="99%" :src="menu.url">
-                    <!--
+            <el-container>
+                <el-header style="text-align: right; height: 20px; font-size: 12px; cursor:pointer;">
+                    <el-dropdown trigger="click" @command="handleCommand">
+                        <i class="el-icon-user" style="margin-right: 15px">当前用户：{{currentUser.name}}</i>
+                        <el-dropdown-menu slot="dropdown">
+                            <template v-for="user in userList">
+                                <el-dropdown-item :command="user.id">{{user.name}}</el-dropdown-item>
+                            </template>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </el-header>
+
+                <el-main class="mainContent">
+                    <iframe class="iframe_content" width="100%" height="99%" :src="menu.url">
+                        <!--
                         <iframe>的属性如下：
                         allowfullscreen：允许嵌入的网页全屏显示，需要全屏 API 的支持，请参考相关的 JavaScript 教程。
                         frameborder：是否绘制边框，0为不绘制，1为绘制（默认值）。建议尽量少用这个属性，而是在 CSS 里面设置样式。
@@ -88,11 +87,11 @@
                         name：内嵌窗口的名称，可以用于<a>、<form>、<base>的target属性。
                         referrerpolicy：请求嵌入网页时，HTTP 请求的Referer字段的设置。参见<a>标签的介绍。
                 -->
-                </iframe>
-            </el-main>
+                    </iframe>
+                </el-main>
+            </el-container>
         </el-container>
-    </el-container>
-</div>
+    </div>
 </body>
 <script>
     new Vue({

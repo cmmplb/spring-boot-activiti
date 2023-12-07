@@ -80,6 +80,10 @@
                                    size="small" style="color: rgb(78,81,242)">
                             详情
                         </el-button>
+                        <el-button icon="el-icon-tickets" @click="handlerEntrustTask(scope.row)" type="text"
+                                   size="small" style="color: rgb(242,152,78)">
+                            委托他人办理
+                        </el-button>
                         <el-button icon="el-icon-s-promotion" @click="handler(scope.row)" type="text"
                                    size="small" style="color: rgb(78,193,242)">
                             办理
@@ -97,6 +101,30 @@
                            @size-change="handleSizeChange" @current-change="handleCurrentChange">
             </el-pagination>
         </div>
+
+        <!-- 委托办理弹窗 -->
+        <el-dialog title="办理任务" :visible="entrustVisible" width="600px" :before-close="handleEntrustClose">
+            <el-form label-width="100px" ref="dataForm" :model="form" :rules="rules">
+                <el-row>
+                    <el-col :span="22">
+                        <el-form-item label="委托办理" prop="userId">
+                            <el-select v-model="form.userId"
+                                       clearable
+                                       placeholder="请选择办理人"
+                            >
+                                <template v-for="ele in userOption">
+                                    <el-option :label="ele.label" :value="ele.value"></el-option>
+                                </template>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleEntrustClose" size="small">取 消</el-button>
+                <el-button type="success" size="small" @click="handlerEntrustConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
 
         <!-- 办理任务弹窗 -->
         <el-dialog title="办理任务" :visible="visible" width="600px" :before-close="handleClose">
@@ -312,6 +340,8 @@
                 form: {
                     id: undefined,
                     comment: '',
+                    // 委托办理人id
+                    userId: undefined,
                 },
                 // 分页参数
                 paginationData: {
@@ -323,6 +353,8 @@
                 loading: false,
                 // 弹窗状态
                 visible: false,
+                // 委托办理弹窗
+                entrustVisible: false,
                 // 请假申请弹窗状态
                 leaveApplyVisible: false,
                 // 出差申请弹窗状态
@@ -347,7 +379,8 @@
                         createTime: '',
                         endTime: '',
                     },
-                }
+                },
+                userOption: []
             }
         },
         mounted() {
@@ -357,6 +390,56 @@
             // 搜索
             handlerSearch() {
                 this.getData();
+            },
+            getUserList() {
+                axios.get('/user/list').then(res => {
+                    if (res.data.code === 200 && res.data.data) {
+                        const currentUser = JSON.parse(window.localStorage.getItem("currentUser"));
+                        res.data.data.map(ele => {
+                            if (ele.id !== currentUser.id) {
+                                this.userOption.push({
+                                    label: ele.name,
+                                    value: ele.id,
+                                });
+                            }
+                        });
+                    } else {
+                        this.$message.error(res.data.msg);
+                    }
+                }).catch((error) => {
+                    this.$message.error(error);
+                });
+            },
+            // 关闭委托办理弹窗
+            handleEntrustClose() {
+                this.entrustVisible = false;
+            },
+            // 委托他人代办
+            handlerEntrustConfirm() {
+                this.$refs.dataForm.validate(valid => {
+                    if (valid) {
+                        axios.post(`/task/entrust/${this.form.id}/${this.form.userId}`).then(res => {
+                            if (res.data.code === 200 && res.data.data) {
+                                this.$message.success('委托成功');
+                                // 刷新列表
+                                this.getData();
+                                // 关闭弹窗
+                                this.handleEntrustClose();
+                                // 重置数据
+                                this.$refs.dataForm.resetFields();
+                            } else {
+                                this.$message.error(res.data.msg);
+                            }
+                        }).catch((error) => {
+                            this.$message.error(error);
+                        });
+                    }
+                });
+            },
+            handlerEntrustTask(row) {
+                this.form.id = row.id;
+                this.entrustVisible = true;
+                this.getUserList();
             },
             // 办理弹窗
             handler(row) {
