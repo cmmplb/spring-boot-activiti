@@ -1,0 +1,14 @@
+mybatis-plus:
+  configuration:
+    # 开启驼峰命名->查出的字段转java驼峰-> create_time -> createTime
+    map-underscore-to-camel-case: true
+    # 开启sql打印-配合mybatis-log-debug模式启动就能看到打印的日志
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    # 关闭启动logo
+    banner: true
+  mapper-locations:
+    - classpath:mapper/*.xml
+    - classpath:mapper/*/*.xml
+  # type-aliases扫描路径-mapper.xml的resultType中直接写类名，可以不用写全限定名
+  type-aliases-package: com.cmmplb.activiti.entity

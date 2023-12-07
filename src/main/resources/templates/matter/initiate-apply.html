@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>发起申请</title>
+    <!-- 引入vue -->
+    <script src="/js/vue-2.7.15.js"></script>
+    <!-- 引入element ui -->
+    <link rel="stylesheet" href="/css/element-ui/index.css">
+    <script src="/js/element-ui.js"></script>
+    <!-- 引入axios -->
+    <script src="/js/axios.js"></script>
+    <!-- 引入公共css样式 -->
+    <link rel="stylesheet" href="/css/common.css">
+</head>
+
+<body>
+<div id="app">
+    <div>
+        <el-card shadow="always" class="content">
+
+            <div class="wrapper">
+                <el-collapse v-model="activeNames">
+                    <el-collapse-item class="title" title="考勤管理" name="1">
+                        <ul>
+                            <li @click="handlerApply(1)">
+                                <el-card shadow="hover" style="margin-right: 20px;">
+                                    <i class="el-icon-notebook-2"></i>
+                                    请假申请
+                                </el-card>
+                            </li>
+                            <li @click="handlerApply(2)">
+                                <el-card shadow="hover" style="margin-right: 20px;">
+                                    <i class="el-icon-s-promotion"></i>
+                                    出差申请
+                                </el-card>
+                            </li>
+                            <li>
+                                <el-card shadow="hover" style="margin-right: 20px;">
+                                    <i class="el-icon-s-promotion"></i>
+                                    more...
+                                </el-card>
+                            </li>
+                        </ul>
+                    </el-collapse-item>
+                    <el-collapse-item class="title" title="more..." name="2">
+                        <ul>
+                            <li>
+                                <el-card shadow="hover" style="margin-right: 20px;">
+                                    <i class="el-icon-s-promotion"></i>
+                                    more...
+                                </el-card>
+                            </li>
+                        </ul>
+                    </el-collapse-item>
+                </el-collapse>
+            </div>
+        </el-card>
+
+        <!-- 请假申请表单,vue项目的话可以抽取成子组件 -->
+        <el-dialog title="添加请假申请" :visible="leaveApplyVisible" width="1400px"
+                   :before-close="handleLeaveApplyClose">
+            <el-form label-width="100px" ref="dataForm" :model="form" :rules="rules">
+                <el-row>
+                    <el-col :span="8">
+                        <el-form-item label="标题" prop="title">
+                            <el-input v-model="form.title"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="申请时间" prop="applyTime">
+                            <el-input disabled v-model="form.applyTime"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item label="申请人" prop="applyUser">
+                            <el-input disabled v-model="form.applyUser"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="请假说明" prop="reason">
+                            <el-input v-model="form.reason" type="textarea"
+                                      placeholder="请输入请假说明"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="请假日期">
+                            <el-button icon="el-icon-plus" round size="mini" @click="handlerAddRow">添加一行</el-button>
+                            <!-- 这里用到了表格内的数据为空校验，leaveDateList列表必须在绑定的dataForm里面定义 -->
+                            <el-table
+                                    stripe
+                                    border
+                                    align="center"
+                                    :data="form.leaveDateList"
+                                    class="table-content"
+                            >
+                                <el-table-column label="序号" type="index" width="50" :resizable="false"
+                                                 align="center">
+                                </el-table-column>
+
+                                <el-table-column prop="applyUser" label="请假人" align="center"></el-table-column>
+
+                                <el-table-column label="请假类型" width="170" align="center">
+                                    <template #default="{ row, $index }">
+                                        <!-- 为了区分是哪一行进行的校验，需要动态绑定 prop 到 el-form-item 元素-->
+                                        <!-- prop/rules/v-model三者的值必须一致，校验才能生效，注意这里的leaveDateList不用再加form.leaveDateList -->
+                                        <el-form-item :prop="'leaveDateList.' + $index + '.type'"
+                                                      :rules="rules.type">
+                                            <el-select v-model="row.type" clearable placeholder="请选择请假类型"
+                                                       style="text-align: center">
+                                                <!-- 类型:1-事假;2-病假;3-年假;4-丧假;5-产假; -->
+                                                <el-option label="事假" :value="1"></el-option>
+                                                <el-option label="病假" :value="2"></el-option>
+                                                <el-option label="年假" :value="3"></el-option>
+                                                <el-option label="丧假" :value="4"></el-option>
+                                                <el-option label="产假" :value="5"></el-option>
+                                            </el-select>
+                                        </el-form-item>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="开始时间" width="220" align="center">
+                                    <!-- 这种写法也可以 -->
+                                    <template slot-scope="scope">
+                                        <el-form-item :prop="'leaveDateList.' + scope.$index + '.startTime'"
+                                                      :rules="rules.startTime">
+                                            <el-date-picker v-model="scope.row.startTime"
+                                                            type="datetime"
+                                                            placeholder="请选择开始日期"
+                                                            value-format="yyyy-MM-dd HH:mm:ss"
+                                                            style="width: 200px;text-align: center"
+                                                            default-time="09:00:00"
+                                                            @change="handlerDateChange(scope.row)"
+                                            >
+                                            </el-date-picker>
+                                        </el-form-item>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column label="结束时间" width="220" align="center">
+                                    <template slot-scope="scope">
+                                        <el-form-item :prop="'leaveDateList.' + scope.$index + '.endTime'"
+                                                      :rules="rules.endTime">
+                                            <el-date-picker v-model="scope.row.endTime"
+                                                            type="datetime"
+                                                            placeholder="请选择结束日期"
+                                                            value-format="yyyy-MM-dd HH:mm:ss"
+                                                            style="width: 200px;text-align: center"
+                                                            default-time="18:00:00"
+                                                            @change="handlerDateChange(scope.row)"
+                                            >
+                                            </el-date-picker>
+                                        </el-form-item>
+                                    </template>
+                                </el-table-column>
+
+                                <el-table-column prop="durationToHour" label="时长(h)" align="center"></el-table-column>
+
+                                <el-table-column prop="durationToDay" label="时长(8h/人天)"
+                                                 align="center"></el-table-column>
+
+                                <!-- 删除一行按钮 -->
+                                <el-table-column fixed="right" align="center" label="操作" width="120">
+                                    <template v-slot="scope">
+                                        <el-button icon="el-icon-delete" @click="handlerDeleteRow(scope)" type="text"
+                                                   size="small"
+                                                   style="color: red">
+                                            删除
+                                        </el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleLeaveApplyClose">取 消</el-button>
+                <el-button type="primary" @click="handlerLeaveApplyConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 出差申请表单 -->
+        <el-dialog title="添加出差申请" :visible="evectionApplyVisible" width="1000px"
+                   :before-close="handleEvectionApplyClose">
+            <el-form label-width="100px" ref="dataForm" :model="form.evection" :rules="rules">
+                <el-row>
+                    <el-col :span="8">
+                        <el-form-item label="标题" prop="title">
+                            <el-input v-model="form.title"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="申请时间" prop="applyTime">
+                            <el-input disabled v-model="form.applyTime"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item label="申请人" prop="applyUser">
+                            <el-input disabled v-model="form.applyUser"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="8">
+                        <el-form-item label="开始时间" prop="startTime">
+                            <el-date-picker v-model="form.evection.startTime"
+                                            type="datetime"
+                                            placeholder="请选择开始时间"
+                                            value-format="yyyy-MM-dd HH:mm:ss"
+                            >
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="15">
+                        <el-form-item label="结束时间" prop="endTime">
+                            <el-date-picker v-model="form.evection.endTime"
+                                            type="datetime"
+                                            placeholder="请选择结束时间"
+                                            value-format="yyyy-MM-dd HH:mm:ss"
+                            >
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="出差说明" prop="reason">
+                            <el-input v-model="form.reason" type="textarea"
+                                      placeholder="请输入出差说明"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleEvectionApplyClose">取 消</el-button>
+                <el-button type="primary" @click="handlerEvectionApplyConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 表单校验
+                rules: {
+                    type: [
+                        {required: true, message: '请选择请假类型', trigger: 'blur'},
+                    ],
+                    startTime: [
+                        {required: true, message: '请选择开始时间', trigger: 'blur'},
+                    ],
+                    endTime: [
+                        {required: true, message: '请选择结束时间', trigger: 'blur'},
+                    ],
+                },
+                // 申请表单
+                form: {
+                    title: '',
+                    applyTime: '',
+                    applyUser: '',
+                    reason: '',
+                    // 请假
+                    leaveDateList: [
+                        {
+                            type: '',
+                            startTime: '',
+                            endTime: '',
+                        }
+                    ],
+                    // 出差
+                    evection: {
+                        startTime: '',
+                        endTime: '',
+                    },
+
+                },
+                activeNames: ['1', '2'],
+                // 请假申请弹窗状态
+                leaveApplyVisible: false,
+                // 出差申请弹窗状态
+                evectionApplyVisible: false,
+            }
+        },
+        mounted() {
+        },
+        methods: {
+            // 初始化申请表单
+            initApplyFrom(type) {
+                const date = new Date();
+                const year = date.getFullYear();
+                const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                const day = ('0' + date.getDate()).slice(-2);
+                const hours = ('0' + date.getHours()).slice(-2);
+                const minutes = ('0' + date.getMinutes()).slice(-2);
+                const seconds = ('0' + date.getSeconds()).slice(-2);
+                const currentUser = JSON.parse(window.localStorage.getItem("currentUser"));
+                const title = type === 1 ? "请假" : "出差";
+                this.form.title = `${title}申请流程-${currentUser.name}-${year}-${month}-${day}`;
+                this.form.applyTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                this.form.applyUser = currentUser.name;
+                if (type === 1) {
+                    this.form.leaveDateList = [];
+                    this.handlerAddRow();
+                } else if (type === 2) {
+                    // ...
+                }
+            },
+            /**
+             * 申请弹窗
+             */
+            handlerApply(type) {
+                this.initApplyFrom(type);
+                if (type === 1) {
+                    this.leaveApplyVisible = true;
+                } else if (type === 2) {
+                    this.evectionApplyVisible = true;
+                }
+            },
+            // ==================================请假-前后端分离的话可以把业务抽取成组件引用=================================
+            // 关闭申请弹窗
+            handleLeaveApplyClose() {
+                this.leaveApplyVisible = false;
+            },
+            // 确认提交
+            handlerLeaveApplyConfirm() {
+                this.$refs.dataForm.validate(async valid => {
+                    if (valid) {
+                        const currentUser = JSON.parse(window.localStorage.getItem("currentUser"));
+                        const config = {
+                            headers: {'User-Id': currentUser.id}
+                        }
+                        axios.post('/leave/save', {
+                            title: this.form.title,
+                            applyTime: this.form.applyTime,
+                            reason: this.form.reason,
+                            leaveDateList: this.form.leaveDateList
+                        }, config).then(res => {
+                            if (res.data.code === 200 && res.data.data) {
+                                this.$message.success('申请成功');
+                                // 关闭弹窗
+                                this.handleLeaveApplyClose();
+                                // 重置数据
+                                this.$refs.dataForm.resetFields();
+                            } else {
+                                this.$message.error(res.data.msg);
+                            }
+                        }).catch((error) => {
+                            console.log(error)
+                            this.$message.error(error);
+                        });
+                    }
+                });
+            },
+            // 填充请假申请时长
+            handlerDateChange(row) {
+                if (row.startTime && row.endTime) {
+                    row.durationToHour = this.getDurationToHour(row.startTime, row.endTime);
+                    row.durationToDay = (row.durationToHour / 8).toFixed(1);
+                }
+            },
+            // 计算两个日期之间的小时
+            getDurationToHour(date1, date2) {
+                const startDateTime = Date.parse(date1);
+                const endDateTime = Date.parse(date2);
+                if (startDateTime > endDateTime) {
+                    return 0;
+                }
+                return Math.floor((endDateTime - startDateTime) / (60 * 60 * 1000));
+            },
+            // 添加一行
+            handlerAddRow() {
+                const currentUser = JSON.parse(window.localStorage.getItem("currentUser"));
+                this.form.leaveDateList.push({
+                    applyUser: currentUser.name,
+                    durationToHour: 0,
+                    durationToDay: 0,
+                });
+            },
+            // 删除一行
+            handlerDeleteRow(scope) {
+                this.form.leaveDateList.splice(scope.$index, 1);
+            },
+            // ==================================出差====================================
+            // 关闭申请弹窗
+            handleEvectionApplyClose() {
+                this.evectionApplyVisible = false;
+            },
+            // 确认提交
+            handlerEvectionApplyConfirm() {
+                this.$refs.dataForm.validate(async valid => {
+                    if (valid) {
+                        const currentUser = JSON.parse(window.localStorage.getItem("currentUser"));
+                        const config = {
+                            headers: {'User-Id': currentUser.id}
+                        }
+                        axios.post('/evection/save', {
+                            title: this.form.title,
+                            applyTime: this.form.applyTime,
+                            reason: this.form.reason,
+                            startTime: this.form.evection.startTime,
+                            endTime: this.form.evection.endTime,
+                        }, config).then(res => {
+                            if (res.data.code === 200 && res.data.data) {
+                                this.$message.success('申请成功');
+                                // 关闭弹窗
+                                this.handleEvectionApplyClose();
+                                // 重置数据
+                                this.$refs.dataForm.resetFields();
+                            } else {
+                                this.$message.error(res.data.msg);
+                            }
+                        }).catch((error) => {
+                            console.log(error)
+                            this.$message.error(error);
+                        });
+                    }
+                });
+            },
+            // ==================================出差====================================
+        }
+    })
+</script>
+<style>
+    /* 去除列表默认样式 */
+    ul {
+        padding-inline-start: 0;
+        list-style: none;
+    }
+
+    /* 清除每个ul卡片的边框 */
+    .el-card {
+        border: none;
+    }
+
+    /* flex布局 */
+    .content ul {
+        display: flex;
+        cursor: pointer;
+    }
+
+    /* 内容左边距 */
+    .wrapper {
+        margin-left: 30px;
+    }
+
+    /* 小标题相对定位，用于添加子元素的绝对定位 */
+    .title {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    /* 添加小标题伪元素左边的竖线 */
+    .title::before {
+        position: absolute;
+        top: 14px;
+        left: -10px;
+        display: block;
+        width: 1px;
+        height: 20px;
+        content: "";
+        background: #00d6bd;
+    }
+
+    /* 标题文字样式 */
+    .el-collapse-item__header {
+        font-size: 21px;
+        font-weight: 300;
+    }
+
+    /* 去掉标题边框线 */
+    .el-collapse {
+        border-top: none;
+    }
+
+    .el-collapse-item__wrap {
+        border-bottom: none;
+    }
+
+    /* 每个小卡片li的文字颜色 */
+    ul li .el-card {
+        color: rgb(78, 193, 242);
+        box-shadow: 2px 2px 4px 2px rgba(0, 0, 0, 0.07);
+    }
+
+    ul li .el-card:hover {
+        color: rgb(242, 152, 78);
+    }
+
+    /* 请假说明高度 */
+    .el-textarea__inner {
+        height: 150px;
+    }
+
+    /* 表格内的input设置文字居中 */
+    .table-content .el-input__inner {
+        text-align: center;
+    }
+
+    /* 表格内的类型下拉设置文字居中 */
+    .el-select-dropdown__list {
+        text-align: center;
+    }
+
+</style>
+
+</html>

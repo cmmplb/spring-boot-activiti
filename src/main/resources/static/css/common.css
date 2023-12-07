@@ -1,0 +1,36 @@
+/*
+ * =====内容样式=====
+ */
+.search {
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+.content {
+    overflow: auto;
+    height: 765px;
+}
+
+/**
+ * =====表单多选下拉=====
+ */
+.search-type-options {
+    width: 150px;
+}
+
+/*
+ * =====分页组件样式=====
+ */
+.pagination-container {
+    position: relative;
+    height: 25px;
+    margin-bottom: 10px;
+    margin-top: 15px;
+    padding: 10px 20px !important;
+}
+
+.pagination-container .el-pagination {
+    position: absolute;
+    right: 10px;
+}
+

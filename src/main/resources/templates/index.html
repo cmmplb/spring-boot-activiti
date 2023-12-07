@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>spring-boot-activiti</title>
+    <link rel="shortcut icon" href='/images/logo.png' type="image/x-icon">
+    <!-- 引入vue -->
+    <script src="/js/vue-2.7.15.js"></script>
+    <!-- 引入element ui -->
+    <link rel="stylesheet" href="/css/element-ui/index.css">
+    <script src="/js/element-ui.js"></script>
+    <!-- 引入axios -->
+    <script src="/js/axios.js"></script>
+    <!-- 引入jquery -->
+    <script src="/js/jquery-3.3.1.js"></script>
+</head>
+
+<body>
+<div id="app">
+    <el-container style="height: 1020px; border: 1px solid #eee">
+        <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+            <!--
+            参数	                    说明                            类型	           可选值                   默认值
+           mode	                    模式	                          string	      horizontal,vertical	      vertical
+           theme	                    主题色	                        string	      light,dark	              light
+           default-active	      当前激活菜单的 index	              string	          —	                       —
+           default-openeds	  当前打开的submenu的 key 数组	            Array	            —	                       —
+           unique-opened	    是否只保持一个子菜单的展开,就是
+                             展开一个菜单的时候另一个菜单就折叠	        boolean	          —	                      false
+
+           router	          是否使用 vue-router 的模式，
+                             启用该模式会在激活导航时以                boolean	          —	                      false
+                             index作为path进行路由跳转
+
+           collapse        监控菜单的折叠true缩进false展开            boolean            —                       false
+        -->
+            <el-menu unique-opened mode="vertical" :default-active="menu.url" :show-timeout="200"
+                     :collapse="false">
+                <template v-for="menu in menuList">
+                    <!-- 无子菜单 -->
+                    <el-menu-item v-if="validateNull(menu.children)" :index="menu.url" @click="handlerClick(menu)">
+                        <i :class="menu.icon"></i>
+                        <span slot="title">{{ menu.name }}</span>
+                    </el-menu-item>
+                    <!-- 有子菜单 -->
+                    <el-submenu v-else :index="menu.url">
+
+                        <template slot="title">
+                            <i :class="menu.icon"></i>
+                            <span slot="title">{{ menu.name }}</span>
+                        </template>
+
+                        <template v-for="child in menu.children">
+                            <el-menu-item :index="child.url" @click="handlerClick(child)">
+                                <i :class="child.icon"></i>
+                                <span slot="title">{{ child.name }}</span>
+                            </el-menu-item>
+                        </template>
+                    </el-submenu>
+                </template>
+            </el-menu>
+        </el-aside>
+
+        <el-container>
+            <el-header style="text-align: right; height: 20px; font-size: 12px; cursor:pointer;">
+                <el-dropdown trigger="click" @command="handleCommand">
+                    <i class="el-icon-user" style="margin-right: 15px">当前用户：{{currentUser.name}}</i>
+                    <el-dropdown-menu slot="dropdown">
+                        <template v-for="user in userList">
+                            <el-dropdown-item :command="user.id">{{user.name}}</el-dropdown-item>
+                        </template>
+                    </el-dropdown-menu>
+                </el-dropdown>
+            </el-header>
+
+            <el-main class="mainContent">
+                <iframe class="iframe_content" width="100%" height="99%" :src="menu.url">
+                    <!--
+                        <iframe>的属性如下：
+                        allowfullscreen：允许嵌入的网页全屏显示，需要全屏 API 的支持，请参考相关的 JavaScript 教程。
+                        frameborder：是否绘制边框，0为不绘制，1为绘制（默认值）。建议尽量少用这个属性，而是在 CSS 里面设置样式。
+                        src：嵌入的网页的 URL。
+                        width：显示区域的宽度。
+                        height：显示区域的高度。
+                        sandbox：设置嵌入的网页的权限，详见下文。
+                        importance：浏览器下载嵌入的网页的优先级，可以设置三个值。high表示高优先级，low表示低优先级，auto表示由浏览器自行决定。
+                        name：内嵌窗口的名称，可以用于<a>、<form>、<base>的target属性。
+                        referrerpolicy：请求嵌入网页时，HTTP 请求的Referer字段的设置。参见<a>标签的介绍。
+                -->
+                </iframe>
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                menuList: [
+                    {
+                        id: 1,
+                        name: "首页",
+                        url: "/view/home",
+                        icon: "el-icon-s-home"
+                    },
+                    {
+                        id: 2,
+                        name: "流程管理",
+                        url: "/view/process/management",
+                        icon: "el-icon-s-platform",
+                        children: [
+                            {
+                                id: 3,
+                                name: "模型管理",
+                                url: "/view/model/management",
+                                icon: "el-icon-s-cooperation",
+                            },
+                            {
+                                id: 4,
+                                name: "部署管理",
+                                url: "/view/deploy/management",
+                                icon: "el-icon-video-play",
+                            }
+                        ]
+                    },
+                    {
+                        id: 5,
+                        name: "事项申请",
+                        url: "/view/matter-apply",
+                        icon: "el-icon-date",
+                        children: [
+                            {
+                                id: 6,
+                                name: "发起申请",
+                                url: "/view/initiate/apply",
+                                icon: "el-icon-edit-outline",
+                            },
+                            {
+                                id: 7,
+                                name: "申请历史",
+                                url: "/view/apply/history",
+                                icon: "el-icon-document",
+                            },
+                        ]
+                    },
+                    {
+                        id: 8,
+                        name: "办理事项",
+                        url: "/view/handler/matter",
+                        icon: "el-icon-paperclip",
+                        children: [
+                            {
+                                id: 9,
+                                name: "代办任务",
+                                url: "/view/incomplete/task",
+                                icon: "el-icon-user",
+                            },
+                            {
+                                id: 10,
+                                name: "已办任务",
+                                url: "/view/completed/task",
+                                icon: "el-icon-more",
+                            }
+                        ]
+                    },
+                ],
+                // 当前用户对象
+                currentUser: {},
+                // 用户列表
+                userList: [],
+                // 当前菜单
+                menu: {
+                    url: "/view/home",
+                },
+            }
+        },
+        mounted() {
+            this.getUserList();
+            this.getCurrentUser();
+            this.getCurrentMenu();
+        },
+        methods: {
+            handlerClick(menu) {
+                if (!this.menu || menu.id !== this.menu.id) {
+                    this.menu = menu;
+                    window.localStorage.setItem("currentMenu", JSON.stringify(menu))
+                    const str1 = '<iframe class="iframe_content" width="100%" height="99%" src="' + menu.url + '"></iframe>';
+                    $('.mainContent').find('iframe.iframe_content').hide().parents('.mainContent').append(str1);
+                }
+            },
+            getCurrentMenu() {
+                const currentMenu = window.localStorage.getItem("currentMenu");
+                if (currentMenu) {
+                    this.menu = JSON.parse(currentMenu);
+                }
+            },
+            getUserList() {
+                axios.get('/user/list').then(res => {
+                    if (res.data.code === 200 && res.data.data) {
+                        this.userList = res.data.data;
+                    } else {
+                        this.$message.error(res.data.msg);
+                    }
+                }).catch((error) => {
+                    this.$message.error(error);
+                });
+            },
+            handleCommand(command) {
+                this.userList.map(ele => {
+                    if (ele.id === command) {
+                        this.currentUser = ele;
+                        window.localStorage.setItem("currentUser", JSON.stringify(ele));
+                        // 刷新当前页面
+                        window.location.reload();
+                    }
+                })
+            },
+            getCurrentUser() {
+                const currentUser = window.localStorage.getItem("currentUser");
+                if (currentUser) {
+                    this.currentUser = JSON.parse(currentUser);
+                } else {
+                    this.currentUser = {
+                        id: 1,
+                        name: "管理员",
+                        username: "admin",
+                    }
+                }
+            },
+            validateNull(val) {
+                if (typeof val === 'boolean') {
+                    return false
+                }
+                if (typeof val === 'number') {
+                    return false
+                }
+                if (val instanceof Array) {
+                    if (val.length === 0) return true
+                } else if (val instanceof Object) {
+                    if (JSON.stringify(val) === '{}') return true
+                } else {
+                    return val === 'null' || val == null || val === 'undefined' || val === undefined || val === '';
+                }
+                return false
+            },
+
+        },
+    })
+</script>
+<style>
+    .iframe_content {
+        border-width: 0;
+    }
+
+    .mainContent {
+        padding: 0 20px 20px 20px;
+    }
+
+    .el-aside {
+        color: #333;
+    }
+</style>
+
+</html>

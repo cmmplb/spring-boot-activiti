@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>部署管理</title>
+    <!-- 引入vue -->
+    <script src="/js/vue-2.7.15.js"></script>
+    <!-- 引入element ui -->
+    <link rel="stylesheet" href="/css/element-ui/index.css">
+    <script src="/js/element-ui.js"></script>
+    <!-- 引入axios -->
+    <script src="/js/axios.js"></script>
+    <!-- 引入公共css样式 -->
+    <link rel="stylesheet" href="/css/common.css">
+    <!-- 代码高亮插件 -->
+    <script src="/js/highlight.min.js"></script>
+    <link rel="stylesheet" href="/css/github-gist.css">
+</head>
+
+<body>
+<div id="app">
+    <div>
+        <!-- 搜索区域 -->
+        <el-card class="search" shadow="always">
+            <!-- 搜索表单区域 -->
+            <!-- inline 属性可以让表单域变为行内的表单域 -->
+            <el-form inline :model="searchForm" class="search-form" size="small">
+                <el-row>
+                    <el-col :span="4">
+                        <el-form-item label="关键词">
+                            <el-input v-model="searchForm.keywords" clearable placeholder="名称"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item>
+                            <el-button type="primary" icon="el-icon-search" @click="handlerSearch">查 询</el-button>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+        </el-card>
+
+        <el-card class="content" shadow="always">
+            <!-- 新增按钮区域 -->
+            <el-form>
+                <el-form-item style="text-align: right;">
+                    <el-button icon="el-icon-plus" type="primary" plain size="small" @click="handlerUpload">
+                        上传流程文件
+                    </el-button>
+                </el-form-item>
+            </el-form>
+
+            <!-- 表格 -->
+            <el-table stripe border v-loading="loading" :data="data" align="center" style="width: 100%;">
+                <!-- 表头 -->
+                <el-table-column label="序号" type="index" width="100" :resizable="false" align="center">
+                </el-table-column>
+                <template v-for="(column, index) in columns">
+                    <el-table-column :key="index" :prop="column.prop" :label="column.label" :width="column.width"
+                                     align="center" :show-overflow-tooltip="column.showOverflowTooltip">
+                        <!-- 添加一个tag标签 -->
+                        <template v-slot="scope">
+                            <div v-if="column.prop === 'isSuspended' ">
+                                <el-tag :type="scope.row.isSuspended ? 'danger' : 'success'" size="small">
+                                    <span>{{scope.row.isSuspended ? '挂起' : '激活'}}</span>
+                                </el-tag>
+                            </div>
+                            <span v-else>
+                                  {{ scope.row[scope.column.property] }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                </template>
+                <!-- 按钮 -->
+                <el-table-column fixed="right" align="center" label="操作" width="220">
+                    <template v-slot="scope">
+                        <el-button icon="el-icon-edit-outline" @click="handlerShowDefine(scope.row)" type="text"
+                                   size="small" style="color: #ff8940">
+                            查看定义文件
+                        </el-button>
+                        <el-button icon="el-icon-s-promotion" @click="handlerShowProcessChart(scope.row)" type="text"
+                                   size="small" style="color: rgb(78,193,242)">
+                            查看流程图
+                        </el-button>
+                        <el-button :icon="scope.row.isSuspended ? 'el-icon-video-play' : 'el-icon-video-pause'"
+                                   @click="handlerSuspended(scope.row)" type="text" size="small"
+                                   :style="'color: ' + (scope.row.isSuspended ? 'rgba(70,255,64,0.63)' : 'blue')">
+                            {{ scope.row.isSuspended ? '激活' : '挂起'}}
+                        </el-button>
+                        <el-button icon="el-icon-s-flag" @click="handlerExchangeModel(scope.row)" type="text"
+                                   size="small"
+                                   style="color: #b700ff">
+                            转为模型
+                        </el-button>
+                        <el-button icon="el-icon-delete" @click="handlerDelete(scope.row)" type="text" size="small"
+                                   style="color: red">
+                            删除
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-card>
+
+        <!-- 分页信息 -->
+        <div class='pagination-container'>
+            <el-pagination :background="false" :current-page.sync="paginationData.current"
+                           :page-size.sync="paginationData.size" layout="total, sizes, prev, pager, next, jumper"
+                           :page-sizes="[1, 5, 10, 20, 30, 50]" :total="paginationData.total" v-bind="$attrs"
+                           @size-change="handleSizeChange" @current-change="handleCurrentChange">
+            </el-pagination>
+        </div>
+
+        <!-- 文件上传 -->
+        <el-dialog title="上传流程文件" :visible="visible" width="500px" :before-close="handleClose">
+            <el-upload
+                    class="upload"
+                    ref="upload"
+                    drag
+                    multiple
+                    :http-request="upload"
+                    action="/deploy/upload"
+                    :auto-upload="false"
+                    :file-list="fileList">
+                <i class="el-icon-upload"></i>
+                <div class="el-upload__text">将流程文件拖到此处，或<em>点击上传</em></div>
+                <div class="el-upload__tip" slot="tip">提示：仅允许导入"bpmn"、"xml"或"zip"格式文件！</div>
+            </el-upload>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleClose">取 消</el-button>
+                <el-button type="primary" @click="handlerConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 挂起/激活 -->
+        <el-dialog :title="isSuspended ? '激活' : '挂起'" :visible="isSuspendedVisible" width="600px"
+                   :before-close="handleSuspendedClose">
+            <el-form label-width="140px" ref="dataForm" :model="form" :rules="rules">
+                <el-row>
+                    <el-col :span="22">
+                        <el-form-item :label="(isSuspended ? '激活' : '挂起') + '关联流程实例'"
+                                      prop="activateProcessInstances">
+                            <el-switch v-model="form.activateProcessInstances"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="22">
+                        <el-form-item label="定时激活时间" prop="activationDate">
+                            <el-date-picker v-model="form.activationDate"
+                                            type="datetime"
+                                            placeholder="请选择定时激活时间"
+                                            value-format="yyyy-MM-dd HH:mm:ss"
+                            />
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleSuspendedClose">取 消</el-button>
+                <el-button type="primary" @click="handlerSuspendedConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 流程图预览 -->
+        <el-dialog title="流程图预览" :visible="processChartVisible" width="1100px"
+                   :before-close="handlerCloseProcessChart">
+            <img :src="img">
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="handlerCloseProcessChart">关 闭</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 流程定义预览 -->
+        <el-dialog title="流程定义预览" class="process-define" :visible="processDefineVisible" width="85%"
+                   :before-close="handlerCloseProcessDefine">
+            <pre><code class="hljs" v-html="highlightedCode()"></code></pre>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="handlerCloseProcessDefine">关 闭</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 表单校验
+                rules: {
+                    // activateProcessInstances: [
+                    //     {required: true, message: '请选择挂起关联流程实例', trigger: 'blur'},
+                    // ],
+                },
+                // 列表表头
+                columns: [
+                    {
+                        prop: 'id',
+                        label: '流程定义id',
+                        // 文本溢出显示省略
+                        showOverflowTooltip: true,
+                        width: 180,
+                    },
+                    {
+                        prop: 'name',
+                        label: '流程名称',
+                        width: 180,
+                    },
+                    {
+                        prop: 'key',
+                        label: '流程关键字',
+                        width: 180,
+                    },
+                    {
+                        prop: 'category',
+                        label: '流程类型',
+                    },
+                    {
+                        prop: 'resourceName',
+                        label: '流程资源定义',
+                        // 文本溢出显示省略
+                        showOverflowTooltip: true
+                    },
+                    {
+                        prop: 'version',
+                        label: '版本',
+                        width: 100,
+                    },
+                    {
+                        prop: 'isSuspended',
+                        label: '状态',
+                        width: 180,
+                    },
+                ],
+                // 列表数据
+                data: [],
+                // 搜索条件
+                searchForm: {
+                    keywords: ""
+                },
+                // 挂起/激活表单
+                form: {
+                    activationDate: '',
+                    activateProcessInstances: true
+                },
+                // 上传部署列表
+                fileList: [
+                    // {
+                    //     name: 'food.jpeg',
+                    //     url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
+                    // }
+                ],
+                // 分页参数
+                paginationData: {
+                    size: 10,
+                    current: 1,
+                    total: 0,
+                },
+                // 加载状态
+                loading: false,
+                // 弹窗状态
+                visible: false,
+                // 挂起/激活状态
+                isSuspended: false,
+                // 挂起/激活弹窗
+                isSuspendedVisible: false,
+                // 流程图预览
+                img: '',
+                // 流程图弹窗状态
+                processChartVisible: false,
+                // 流程定义预览
+                text: '',
+                // 流程定义弹窗状态
+                processDefineVisible: false,
+            }
+        },
+        mounted() {
+            this.getData();
+        },
+        methods: {
+            async handlerShowDefine(row) {
+                this.processDefineVisible = true;
+                // window.open('/deploy/show/process/' + row.deploymentId + '/' + row.resourceName, "_blank");
+                let res = await axios({
+                    url: '/deploy/show/process/' + row.deploymentId + '/' + row.resourceName,
+                    method: 'get',
+                });
+                this.text = res.data;
+            },
+            /** 高亮显示 */
+            highlightedCode() {
+                const result = hljs.highlight("xml", this.text || '', true);
+                return result.value || '&nbsp;';
+            },
+            // 关闭流程图预览弹窗
+            handlerCloseProcessDefine() {
+                this.processDefineVisible = false;
+            },
+            // 查看流程图
+            async handlerShowProcessChart(row) {
+                // 打开新页签显示
+                // window.open('/deploy/show/model/' + row.id, "_blank");
+                // 转换流响应到弹窗
+                this.processChartVisible = true;
+                let res = await axios({
+                    url: '/deploy/show/model/' + row.id,
+                    method: 'get',
+                    responseType: 'blob'
+                });
+                this.img = window.URL.createObjectURL(res.data);
+            },
+            // 关闭流程图预览弹窗
+            handlerCloseProcessChart() {
+                this.processChartVisible = false;
+            },
+            // 删除
+            handlerDelete(row) {
+                this.$confirm('是否确认删除名称为"' + row.name + '"的数据项？', '删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }).then(() => {
+                    axios.delete('/deploy/' + row.deploymentId).then(res => {
+                        if (res.data.code === 200 && res.data.data) {
+                            this.$message.success('删除成功');
+                            this.getData();
+                        }
+                    }).catch((error) => {
+                        this.$message.error(error);
+                    });
+                })
+            },
+            // 转为模型
+            handlerExchangeModel(row) {
+                this.$confirm('是否确认转换名称为"' + row.name + '"的部署为模型？', '转换模型', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'success',
+                }).then(() => {
+                    axios.post('/deploy/exchange/' + row.id).then(res => {
+                        if (res.data.code === 200 && res.data.data) {
+                            this.$message.success('转换成功');
+                        } else {
+                            this.$message.error(res.data.msg);
+                        }
+                    }).catch((error) => {
+                        this.$message.error(error);
+                    });
+                })
+            },
+            // 搜索
+            handlerSearch() {
+                this.getData();
+            },
+            // 新增弹窗
+            handlerUpload() {
+                this.visible = true;
+            },
+            // 新增挂起/激活弹窗
+            handlerSuspended(row) {
+                console.log('row:', row)
+                this.form.id = row.id;
+                this.isSuspended = row.isSuspended;
+                this.isSuspendedVisible = true;
+            },
+            // 关闭弹窗
+            handleClose() {
+                this.visible = false;
+            },
+            // 关闭挂起/激活弹窗
+            handleSuspendedClose() {
+                this.isSuspendedVisible = false;
+            },
+            // 确认挂起/激活弹窗
+            handlerSuspendedConfirm() {
+                let url;
+                if (this.isSuspended) {
+                    url = '/deploy/activate/';
+                } else {
+                    url = '/deploy/suspend/';
+                }
+                axios.post(url + this.form.id, this.form).then(res => {
+                    if (res.data.code === 200 && res.data.data) {
+                        this.$message.success(this.isSuspended ? '挂起成功' : '激活成功');
+                        // 刷新列表
+                        this.getData();
+                        // 关闭弹窗
+                        this.handleSuspendedClose();
+                    } else {
+                        this.$message.error(res.data.msg);
+                    }
+                }).catch((error) => {
+                    this.$message.error(error);
+                });
+            },
+            // 添加导入文件
+            upload(res) {
+                this.fileList.push(res.file);
+            },
+            // 确认
+            handlerConfirm() {
+                // 手动提交上传，会调用http-request事件
+                this.$refs.upload.submit();
+                // console.log("res:", res);
+                console.log('fileList:', this.fileList)
+                let formData = new FormData();
+                this.fileList.forEach(ele => {
+                    formData.set("files", ele);
+                });
+                axios.post('/deploy/upload', formData).then(res => {
+                    if (res.data.code === 200 && res.data.data) {
+                        this.$message.success('上传成功');
+                        // 刷新列表
+                        this.getData();
+                        // 关闭弹窗
+                        this.handleClose();
+                    } else {
+                        this.$message.error(res.data.msg);
+                    }
+                }).catch((error) => {
+                    this.$message.error(error);
+                });
+            },
+            // 获取列表
+            async getData() {
+                this.loading = true;
+                let res = await axios.post('/deploy/paged', {...this.searchForm, ...this.paginationData});
+                if (res.data.code === 200 && res.data.data) {
+                    this.data = res.data.data.rows;
+                    this.paginationData.total = res.data.data.total;
+                } else {
+                    this.$message.error(res.data.msg);
+                }
+                this.loading = false;
+            },
+            // 页码切换
+            pagination(data) {
+                this.paginationData = {...this.paginationData, current: data.current};
+                this.getData();
+            },
+            /**
+             * pageSize 改变时会触发
+             * @param val 每页条数
+             */
+            handleSizeChange(val) {
+                this.pagination({current: this.paginationData.currentPage, size: val});
+            },
+            /**
+             * currentPage 改变时会触发
+             * @param val 当前页
+             */
+            handleCurrentChange(val) {
+                this.pagination({current: val, size: this.paginationData.pageSize});
+            },
+        }
+    })
+</script>
+<style>
+    .el-upload-dragger {
+        margin-left: 50px;
+    }
+
+    .el-upload__tip {
+        margin-top: 15px;
+        color: red;
+    }
+
+    .el-dialog__body {
+        padding: 0 20px;
+    }
+</style>
+
+</html>

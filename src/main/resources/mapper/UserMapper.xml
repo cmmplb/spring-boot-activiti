@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cmmplb.activiti.dao.UserMapper">
+
+    <sql id="base_column">
+        <!-- @sql select -->
+        su.`id`,
+        su.`username`,
+        su.`name`,
+        su.`status`,
+        su.`create_time`,
+        su.`update_time`,
+        su.`deleted`
+        <!-- @sql from `sys_user` su -->
+    </sql>
+
+    <sql id="base_select">
+        select
+        <include refid="base_column"/>
+        from `sys_user` su
+    </sql>
+
+    <!-- 如果一条语句每次都需要最新的数据，就意味着每次都需要从数据库中查询数据，可以把这个属性设置为false -->
+    <select id="selectByPaged" resultType="com.cmmplb.activiti.entity.User" useCache="false">
+        select
+        <include refid="base_column"/>
+        from `sys_user` su
+    </select>
+</mapper>

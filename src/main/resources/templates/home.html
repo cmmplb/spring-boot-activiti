@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+    <!-- 引入vue -->
+    <script src="/js/vue-2.7.15.js"></script>
+    <!-- 引入element ui -->
+    <link rel="stylesheet" href="/css/element-ui/index.css">
+    <script src="/js/element-ui.js"></script>
+    <!-- 引入axios -->
+    <script src="/js/axios.js"></script>
+    <!-- 引入公共css样式 -->
+    <link rel="stylesheet" href="/css/common.css">
+    <!-- 引入echarts文件 -->
+    <script src="/js/echarts.js"></script>
+</head>
+
+<body>
+<div id="app">
+    <!-- 通过基础的 24 分栏 -->
+    <!-- Row 组件 提供 gutter 属性来指定每一栏之间的间隔，默认间隔为 0。 -->
+    <div>
+        <el-row :gutter="20" class="content-card">
+            <el-col :span="6">
+                <el-card shadow="always">
+                    <div slot="header">
+                        <span>代办数量</span>
+                        <span style="float: right; padding: 3px 0">{{itemCount.incompleteCount}}</span>
+                    </div>
+                </el-card>
+            </el-col>
+
+            <el-col :span="6">
+                <el-card shadow="always">
+                    <div slot="header">
+                        <span>已办数量</span>
+                        <span style="float: right; padding: 3px 0">{{itemCount.completedCount}}</span>
+                    </div>
+                </el-card>
+            </el-col>
+
+            <el-col :span="6">
+                <el-card shadow="always">
+                    <div slot="header">
+                        <span>请假数量</span>
+                        <span style="float: right; padding: 3px 0">{{itemCount.leaveCount}}</span>
+                    </div>
+                </el-card>
+            </el-col>
+
+            <el-col :span="6">
+                <el-card shadow="always">
+                    <div slot="header">
+                        <span>出差数量</span>
+                        <span style="float: right; padding: 3px 0">{{itemCount.evectionCount}}</span>
+                    </div>
+                </el-card>
+            </el-col>
+        </el-row>
+        <el-row :gutter="20" class="content-card">
+            <el-col :span="24">
+                <el-card shadow="always" style="margin: 30px 0">
+                    <div style="margin-bottom: 10px">
+                        <!-- 添加一个切换统计类型:1-24小时;2-近30天; -->
+                        <el-switch
+                                v-model="type"
+                                active-text="24小时"
+                                inactive-text="近30天"
+                                @change="handlerChange"
+                        >
+                        </el-switch>
+                    </div>
+                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                    <div id="main" style="height:400px;"></div>
+                </el-card>
+            </el-col>
+        </el-row>
+
+        <el-row :gutter="20" class="content-card">
+            <el-col :span="12">
+                <el-card shadow="always">
+                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                    <div id="main1" style="height:250px;"></div>
+                </el-card>
+            </el-col>
+
+            <el-col :span="12">
+                <el-card shadow="always">
+                    <!-- 为 ECharts 准备一个定义了宽高的 DOM -->
+                    <div id="main2" style="height:250px;"></div>
+                </el-card>
+            </el-col>
+        </el-row>
+    </div>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                type: false,
+                itemCount: {
+                    incompleteCount: 0,
+                    completedCount: 0,
+                    leaveCount: 0,
+                    evectionCount: 0,
+                },
+                option: {
+                    title: {
+                        text: '申请统计'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        // data: ['请假申请', '出差申请']
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        // data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        // {
+                        //     name: '请假申请',
+                        //     type: 'line',
+                        //     stack: 'Total',
+                        //     data: [120, 132, 101, 134, 90, 230, 210]
+                        // },
+                        // {
+                        //     name: '出差申请',
+                        //     type: 'line',
+                        //     stack: 'Total',
+                        //     data: [220, 182, 191, 234, 290, 330, 310]
+                        // },
+                    ]
+                }
+            }
+        },
+        mounted() {
+            this.getApplyStatistics();
+            setTimeout(() => {
+                // 这里要延迟渲染，等数据加载之后再显示统计图
+                this.init();
+            }, 200)
+            this.chart1();
+            this.chart2();
+            this.getItemCount();
+        },
+        methods: {
+            handlerChange() {
+                this.getApplyStatistics();
+                setTimeout(() => {
+                    this.init();
+                }, 200)
+            },
+            getItemCount() {
+                axios.get('/home/item/count').then(res => {
+                    if (res.data.code === 200 && res.data.data) {
+                        this.itemCount = res.data.data;
+                    } else {
+                        this.$message.error(res.data.msg);
+                    }
+                }).catch((error) => {
+                    this.$message.error(error);
+                });
+            },
+            getApplyStatistics() {
+                axios.get('/home/apply/statistics/' + (this.type ? 1 : 2)).then(res => {
+                    if (res.data.code === 200 && res.data.data) {
+                        this.option.legend.data = res.data.data.nameList;
+                        this.option.xAxis.data = res.data.data.timeList;
+                        res.data.data.dataList.map(ele => {
+                            console.log('ele:', ele)
+                            this.option.series.push({
+                                name: ele.name,
+                                type: 'line',
+                                stack: 'Total',
+                                data: ele.data
+                            });
+                        });
+
+                    } else {
+                        this.$message.error(res.data.msg);
+                    }
+                }).catch((error) => {
+                    this.$message.error(error);
+                });
+            },
+            // 折线图
+            init() {
+                const chartDom = document.getElementById('main');
+                const myChart = echarts.init(chartDom);
+                // 使用配置
+                myChart.setOption(this.option);
+            },
+            // 饼图
+            chart1() {
+                var chartDom = document.getElementById('main1');
+                var myChart = echarts.init(chartDom);
+                var option;
+
+                option = {
+                    title: {
+                        text: '我的代办',
+                        subtext: '月统计',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left'
+                    },
+                    series: [
+                        {
+                            name: 'Access From',
+                            type: 'pie',
+                            radius: '50%',
+                            data: [
+                                {value: 1048, name: '请假申请'},
+                                {value: 735, name: '采购申请'},
+                                {value: 580, name: '加班申请'},
+                                {value: 484, name: '出库申请'},
+                                {value: 300, name: '入库申请'}
+                            ],
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                option && myChart.setOption(option);
+            },
+            chart2() {
+                var chartDom = document.getElementById('main2');
+                var myChart = echarts.init(chartDom);
+                var option;
+
+                option = {
+                    title: {
+                        text: '全部代办',
+                        subtext: '月统计',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left'
+                    },
+                    series: [
+                        {
+                            name: 'Access From',
+                            type: 'pie',
+                            radius: '50%',
+                            data: [
+                                {value: 1048, name: '请假申请'},
+                                {value: 735, name: '采购申请'},
+                                {value: 580, name: '加班申请'},
+                                {value: 484, name: '出库申请'},
+                                {value: 300, name: '入库申请'}
+                            ],
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                };
+
+                option && myChart.setOption(option);
+            }
+        }
+    })
+</script>
+
+<style>
+    .content-card {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+</style>
+</html>

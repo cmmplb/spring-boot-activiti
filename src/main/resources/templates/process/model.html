@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>模型管理</title>
+    <!-- 引入vue -->
+    <script src="/js/vue-2.7.15.js"></script>
+    <!-- 引入element ui -->
+    <link rel="stylesheet" href="/css/element-ui/index.css">
+    <script src="/js/element-ui.js"></script>
+    <!-- 引入axios -->
+    <script src="/js/axios.js"></script>
+    <!-- 引入公共css样式 -->
+    <link rel="stylesheet" href="/css/common.css">
+</head>
+
+<body>
+<div id="app">
+    <div>
+        <!-- 搜索区域 -->
+        <el-card class="search" shadow="always">
+            <!-- 搜索表单区域 -->
+            <!-- inline 属性可以让表单域变为行内的表单域 -->
+            <el-form inline :model="searchForm" class="search-form" size="small">
+                <el-row>
+                    <el-col :span="4">
+                        <el-form-item label="关键词">
+                            <el-input v-model="searchForm.keywords" clearable placeholder="名称"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item>
+                            <el-button type="primary" icon="el-icon-search" @click="handlerSearch">查 询</el-button>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+        </el-card>
+
+        <el-card class="content" shadow="always">
+            <!-- 新增按钮区域 -->
+            <el-form>
+                <el-form-item style="text-align: right;">
+                    <el-button icon="el-icon-plus" type="primary" plain size="small" @click="handlerAdd">新增
+                    </el-button>
+                </el-form-item>
+            </el-form>
+
+            <!-- 表格 -->
+            <el-table stripe border v-loading="loading" :data="data" align="center" style="width: 100%; height: 50%">
+                <!-- 表头 -->
+                <el-table-column label="序号" type="index" width="100" :resizable="false" align="center">
+                </el-table-column>
+                <template v-for="(column, index) in columns">
+                    <el-table-column :key="index" :prop="column.prop" :label="column.label" :width="column.width"
+                                     align="center">
+                    </el-table-column>
+                </template>
+                <!-- 按钮 -->
+                <el-table-column fixed="right" align="center" label="操作" width="220">
+                    <template v-slot="scope">
+                        <el-button icon="el-icon-edit-outline" @click="handlerDesign(scope.row)" type="text"
+                                   size="small" style="color: #ff8940">
+                            设计
+                        </el-button>
+                        <el-button icon="el-icon-s-promotion" @click="handlerDeployment(scope.row)" type="text"
+                                   size="small" style="color: rgb(78,193,242)">
+                            发布
+                        </el-button>
+                        <el-button icon="el-icon-s-promotion" @click="handlerExport(scope.row)" type="text"
+                                   size="small" style="color: rgb(176,78,242)">
+                            导出
+                        </el-button>
+                        <el-button icon="el-icon-edit" @click="handlerEdit(scope.row)" type="text" size="small"
+                                   style="color: #409eff">
+                            编辑
+                        </el-button>
+                        <el-button icon="el-icon-delete" @click="handlerDelete(scope.row)" type="text" size="small"
+                                   style="color: red">
+                            删除
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-card>
+
+        <!-- 分页信息 -->
+        <div class='pagination-container'>
+            <el-pagination :background="false" :current-page.sync="paginationData.current"
+                           :page-size.sync="paginationData.size" layout="total, sizes, prev, pager, next, jumper"
+                           :page-sizes="[1, 5, 10, 20, 30, 50]" :total="paginationData.total" v-bind="$attrs"
+                           @size-change="handleSizeChange" @current-change="handleCurrentChange">
+            </el-pagination>
+        </div>
+
+        <!-- 新增/编辑 -->
+        <el-dialog :title="isAdd? '新增': '编辑'" :visible="visible" width="600px" :before-close="handleClose">
+            <el-form label-width="100px" ref="dataForm" :model="form" :rules="rules">
+                <el-row>
+                    <el-col :span="22">
+                        <el-form-item label="模型关键字" prop="key">
+                            <!-- autocomplete:自动完成允许浏览器预测对字段的输入 -->
+                            <el-input v-model="form.key" autocomplete="off" placeholder="请输入模型关键字"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="22">
+                        <el-form-item label="模型名称" prop="name">
+                            <el-input v-model="form.name" autocomplete="off" placeholder="请输入模型名称"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="22">
+                        <el-form-item label="模型类型" prop="category">
+                            <el-input v-model="form.category" autocomplete="off"
+                                      placeholder="请输入模型类型"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="22">
+                        <el-form-item label="描述" prop="description">
+                            <el-input v-model="form.description" autocomplete="off" placeholder="请输入描述"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleClose">取 消</el-button>
+                <el-button type="primary" @click="handlerConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 表单校验
+                rules: {
+                    name: [
+                        {required: true, message: '请输入模型名称', trigger: 'blur'},
+                    ],
+                },
+                // 列表表头
+                columns: [
+                    {
+                        prop: 'name',
+                        label: '模型名称',
+                    },
+                    {
+                        prop: 'key',
+                        label: '模型关键字',
+                        width: 180,
+                    },
+                    {
+                        prop: 'category',
+                        label: '模型类型',
+                        width: 180,
+                    },
+                    {
+                        prop: 'version',
+                        label: '版本',
+                        width: 180,
+                    },
+                    {
+                        prop: 'createTime',
+                        label: '创建时间',
+                    },
+                ],
+                // 列表数据
+                data: [],
+                // 搜索条件
+                searchForm: {
+                    keywords: ""
+                },
+                // 提交表单
+                form: {
+                    key: '',
+                    name: '',
+                    category: '',
+                    description: '',
+                },
+                // 分页参数
+                paginationData: {
+                    size: 10,
+                    current: 1,
+                    total: 0,
+                },
+                // 加载状态
+                loading: false,
+                // 弹窗状态
+                visible: false,
+                // 是否新增
+                isAdd: false,
+            }
+        },
+        mounted() {
+            this.getData();
+        },
+        methods: {
+            // 设计
+            handlerDesign(row) {
+                window.open("/editor?modelId=" + row.id, "_blank");
+            },
+            // 导出
+            handlerExport(row) {
+                if (!row.id) return;
+                const a = document.createElement("a");
+                a.href = "/model/export/" + row.id;
+                // 这里设置下载的名字
+                a.download = row.key + ".bpmn20.xml";
+                a.click();
+            },
+            // 部署
+            handlerDeployment(row) {
+                this.$confirm('是否确认发布名称为"' + row.name + '"的模型？', '发布', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'success',
+                }).then(() => {
+                    axios.post('/model/deploy/' + row.id).then(res => {
+                        if (res.data.code === 200 && res.data.data) {
+                            this.$message.success('部署成功');
+                        } else {
+                            this.$message.error(res.data.msg);
+                        }
+                    }).catch((error) => {
+                        this.$message.error(error);
+                    });
+                })
+            },
+            // 编辑
+            handlerEdit(row) {
+                this.visible = true;
+                this.isAdd = false;
+                this.$nextTick(async () => {
+                    // 重置数据
+                    this.$refs.dataForm.resetFields();
+                    axios.get('/model/' + row.id).then(res => {
+                        if (res.data.code === 200 && res.data.data) {
+                            const {id, key, name, category} = res.data.data;
+                            this.form = {id, key, name, category, description: ''}
+                            let metaInfo = JSON.parse(res.data.data.metaInfo);
+                            this.form.description = metaInfo.description;
+                        }
+                    }).catch((error) => {
+                        this.$message.error(error);
+                    });
+                });
+            },
+            // 删除
+            handlerDelete(row) {
+                this.$confirm('是否确认删除名称为"' + row.name + '"的数据项？', '删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }).then(() => {
+                    axios.delete('/model/' + row.id).then(res => {
+                        if (res.data.code === 200 && res.data.data) {
+                            this.$message.success('删除成功');
+                            this.getData();
+                        }
+                    }).catch((error) => {
+                        this.$message.error(error);
+                    });
+                })
+            },
+            // 搜索
+            handlerSearch() {
+                this.getData();
+            },
+            // 新增弹窗
+            handlerAdd() {
+                this.visible = true;
+                this.isAdd = true;
+                this.form.id = undefined;
+            },
+            // 关闭弹窗
+            handleClose() {
+                this.visible = false;
+                if (this.form.id) {
+                    // 重置数据
+                    this.$refs.dataForm.resetFields();
+                }
+            },
+            // 确认
+            handlerConfirm() {
+                this.$refs.dataForm.validate(valid => {
+                    if (valid) {
+                        axios.post('/model/save', this.form).then(res => {
+                            if (res.data.code === 200 && res.data.data) {
+                                this.$message.success(this.form.id ? '修改成功' : '新增成功');
+                                // 刷新列表
+                                this.getData();
+                                // 关闭弹窗
+                                this.handleClose();
+                                // 重置数据
+                                this.$refs.dataForm.resetFields();
+                            } else {
+                                this.$message.error(res.data.msg);
+                            }
+                        }).catch((error) => {
+                            this.$message.error(error);
+                        });
+                    }
+                });
+            },
+            // 获取列表
+            async getData() {
+                this.loading = true;
+                let res = await axios.post('/model/paged', {...this.searchForm, ...this.paginationData});
+                if (res.data.code === 200 && res.data.data) {
+                    this.data = res.data.data.rows;
+                    this.paginationData.total = res.data.data.total;
+                } else {
+                    this.$message.error(res.data.msg);
+                }
+                this.loading = false;
+            },
+            // 页码切换
+            pagination(data) {
+                this.paginationData = {...this.paginationData, current: data.current};
+                this.getData();
+            },
+            /**
+             * pageSize 改变时会触发
+             * @param val 每页条数
+             */
+            handleSizeChange(val) {
+                this.pagination({current: this.paginationData.currentPage, size: val});
+            },
+            /**
+             * currentPage 改变时会触发
+             * @param val 当前页
+             */
+            handleCurrentChange(val) {
+                this.pagination({current: val, size: this.paginationData.pageSize});
+            },
+        }
+    })
+</script>
+
+<style>
+</style>
+
+</html>

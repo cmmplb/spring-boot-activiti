@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>申请历史</title>
+    <!-- 引入vue -->
+    <script src="/js/vue-2.7.15.js"></script>
+    <!-- 引入element ui -->
+    <link rel="stylesheet" href="/css/element-ui/index.css">
+    <script src="/js/element-ui.js"></script>
+    <!-- 引入axios -->
+    <script src="/js/axios.js"></script>
+    <!-- 引入公共css样式 -->
+    <link rel="stylesheet" href="/css/common.css">
+</head>
+
+<body>
+<div id="app">
+    <div>
+        <!-- 搜索区域 -->
+        <el-card class="search" shadow="always">
+            <!-- 搜索表单区域 -->
+            <!-- inline 属性可以让表单域变为行内的表单域 -->
+            <el-form inline :model="searchForm" class="search-form" size="small">
+                <el-row>
+                    <el-col :span="4">
+                        <el-form-item label="关键词">
+                            <el-input v-model="searchForm.keywords" clearable placeholder="标题"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="4">
+                        <el-form-item label="数据范围">
+                            <el-select v-model="searchForm.scope"
+                                       clearable
+                                       placeholder="请选择数据范围"
+                                       @change="selectChange"
+                            >
+                                <el-option label="我的申请" :value="1"></el-option>
+                                <el-option label="全部申请" :value="2"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="4">
+                        <el-form-item label="类型">
+                            <el-select v-model="searchForm.type"
+                                       clearable
+                                       placeholder="请选择类型"
+                                       @change="selectChange"
+                            >
+                                <el-option label="请假" :value="1"></el-option>
+                                <el-option label="出差" :value="2"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="4">
+                        <el-form-item label="流程状态">
+                            <el-select v-model="searchForm.status"
+                                       clearable
+                                       placeholder="请选择流程状态"
+                                       @change="selectChange"
+                            >
+                                <el-option label="进行中" :value="0"></el-option>
+                                <el-option label="已完成" :value="1"></el-option>
+                                <el-option label="已驳回" :value="2"></el-option>
+                                <el-option label="已撤销" :value="3"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item>
+                            <el-button type="primary" icon="el-icon-search" @click="handlerSearch">查 询</el-button>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+        </el-card>
+
+        <el-card class="content" shadow="always">
+            <!-- 表格 -->
+            <el-table stripe border v-loading="loading" :data="data" align="center" style="width: 100%;">
+                <!-- 表头 -->
+                <el-table-column label="序号" type="index" width="100" :resizable="false" align="center">
+                </el-table-column>
+                <template v-for="(column, index) in columns">
+                    <el-table-column :key="index" :prop="column.prop" :label="column.label" :width="column.width"
+                                     align="center" :show-overflow-tooltip="column.showOverflowTooltip">
+                        <!-- 添加一个tag标签 -->
+                        <template v-slot="scope">
+                            <div v-if="column.prop === 'status' ">
+                                <!-- 流程状态:0-进行中;1-已完成;2-已驳回;3-已撤销; -->
+                                <el-tag :type="scope.row.status === 0 ? '' : (scope.row.status === 1 ? 'success' : (scope.row.status === 2 ? 'danger' : 'info'))"
+                                        size="small">
+                                    <span>{{scope.row.status === 0 ? '进行中' : (scope.row.status === 1 ? '已完成' : (scope.row.status === 2 ? '已驳回' : '已撤销'))}}</span>
+                                </el-tag>
+                            </div>
+                            <span v-else>
+                                  {{ scope.row[scope.column.property] }}
+                            </span>
+                        </template>
+                    </el-table-column>
+                </template>
+                <!-- 按钮 -->
+                <el-table-column fixed="right" align="center" label="操作" width="220">
+                    <template v-slot="scope">
+                        <el-button icon="el-icon-tickets" @click="handlerDetails(scope.row)" type="text"
+                                   size="small" style="color: rgb(78,193,242)">
+                            详情
+                        </el-button>
+                        <el-button v-if="scope.row.status !== 3 " icon="el-icon-s-promotion"
+                                   @click="handlerProcessChart(scope.row)" type="text"
+                                   size="small" style="color: rgb(78,81,242)">
+                            查看流程进度
+                        </el-button>
+                        <!-- 管理员和自己能撤销，这里管理员为了简便直接读取缓存写死了1L -->
+                        <el-button v-if="scope.row.status === 0 && (scope.row.userId === userId || userId === 1)"
+                                   icon="el-icon-delete"
+                                   @click="handlerCancel(scope.row)"
+                                   type="text" size="small"
+                                   style="color: rgba(3,72,248,0.32)">
+                            撤销
+                        </el-button>
+                        <el-button v-if="scope.row.userId === userId || userId === 1" icon="el-icon-delete"
+                                   @click="handlerDelete(scope.row)" type="text" size="small"
+                                   style="color: red">
+                            删除
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-card>
+
+        <!-- 分页信息 -->
+        <div class='pagination-container'>
+            <el-pagination :background="false" :current-page.sync="paginationData.current"
+                           :page-size.sync="paginationData.size" layout="total, sizes, prev, pager, next, jumper"
+                           :page-sizes="[1, 5, 10, 20, 30, 50]" :total="paginationData.total" v-bind="$attrs"
+                           @size-change="handleSizeChange" @current-change="handleCurrentChange">
+            </el-pagination>
+        </div>
+
+        <!-- 请假申请表单回显 -->
+        <el-dialog title="请假申请信息" :visible="leaveApplyVisible" width="1400px"
+                   :before-close="handleLeaveApplyClose">
+            <el-form disabled label-width="100px" ref="dataForm" :model="applyDetails.leave">
+                <el-row>
+                    <el-col :span="8">
+                        <el-form-item label="标题">
+                            <el-input v-model="applyDetails.title"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="申请时间">
+                            <el-input v-model="applyDetails.applyTime"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item label="申请人">
+                            <el-input v-model="applyDetails.userName"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="请假说明">
+                            <el-input v-model="applyDetails.reason" type="textarea"
+                                      placeholder="请输入请假说明"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="请假日期">
+                            <el-table
+                                    stripe
+                                    border
+                                    align="center"
+                                    :data="applyDetails.leave.leaveDateList"
+                                    class="table-content"
+                            >
+                                <el-table-column label="序号" type="index" width="50" :resizable="false"
+                                                 align="center"></el-table-column>
+
+                                <el-table-column prop="userName" label="请假人" align="center"></el-table-column>
+
+                                <el-table-column prop="typeName" label="请假类型" width="170"
+                                                 align="center"></el-table-column>
+
+                                <el-table-column prop="startTime" label="开始时间" width="220"
+                                                 align="center"></el-table-column>
+
+                                <el-table-column prop="endTime" label="结束时间" width="220"
+                                                 align="center"></el-table-column>
+
+                                <el-table-column prop="durationToHour" label="时长(h)" align="center"></el-table-column>
+
+                                <el-table-column prop="durationToDay" label="时长(8h/人天)"
+                                                 align="center"></el-table-column>
+                            </el-table>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleLeaveApplyClose">关 闭</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 出差申请表单回显 -->
+        <el-dialog title="出差申请信息" :visible="evectionApplyVisible" width="1400px"
+                   :before-close="handleEvectionApplyClose">
+            <el-form disabled label-width="100px" ref="dataForm" :model="applyDetails.evection">
+                <el-row>
+                    <el-col :span="8">
+                        <el-form-item label="标题">
+                            <el-input v-model="applyDetails.title"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="申请时间">
+                            <el-input v-model="applyDetails.applyTime"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="7">
+                        <el-form-item label="申请人">
+                            <el-input v-model="applyDetails.userName"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="出差说明">
+                            <el-input v-model="applyDetails.reason" type="textarea"
+                                      placeholder="请输入出差说明"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="开始时间" prop="startTime">
+                            <el-date-picker v-model="applyDetails.evection.startTime"
+                                            type="datetime"
+                                            placeholder="请选择开始时间"
+                                            value-format="yyyy-MM-dd HH:mm:ss"
+                                            style="width: 200px;text-align: center"
+                            >
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="23">
+                        <el-form-item label="结束时间" prop="endTime">
+                            <el-date-picker v-model="applyDetails.evection.endTime"
+                                            type="datetime"
+                                            placeholder="请选择结束时间"
+                                            value-format="yyyy-MM-dd HH:mm:ss"
+                                            style="width: 200px;text-align: center"
+                            >
+                            </el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="handleEvectionApplyClose">关 闭</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 查看流程进度 -->
+        <el-dialog title="查看流程进度" :visible="visible" width="1100px" :before-close="handleClose">
+            <img :src="img">
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="handleClose">关 闭</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</div>
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                // 列表表头
+                columns: [
+                    {
+                        prop: 'title',
+                        label: '标题',
+                    },
+                    {
+                        prop: 'defName',
+                        label: '流程名称',
+                        width: 180,
+                    },
+                    {
+                        prop: 'typeName',
+                        label: '类型',
+                        width: 180,
+                    },
+                    {
+                        prop: 'userName',
+                        label: '申请人姓名',
+                        width: 180,
+                    },
+                    {
+                        prop: 'status',
+                        label: '流程状态',
+                        width: 180,
+                    },
+                    {
+                        prop: 'createTime',
+                        label: '创建时间',
+                    },
+                ],
+                // 列表数据
+                data: [],
+                // 搜索条件
+                searchForm: {
+                    keywords: "",
+                    scope: 1,
+                    type: '',
+                    status: '',
+                },
+                // 分页参数
+                paginationData: {
+                    size: 10,
+                    current: 1,
+                    total: 0,
+                },
+                // 流程进度弹窗状态
+                visible: false,
+                // 进度图
+                img: '',
+                // 加载状态
+                loading: false,
+                // 当前登陆用户
+                userId: undefined,
+                // 请假申请弹窗状态
+                leaveApplyVisible: false,
+                // 出差申请弹窗状态
+                evectionApplyVisible: false,
+                // 申请信息
+                applyDetails: {
+                    title: '',
+                    type: '',
+                    status: '',
+                    reason: '',
+                    applyTime: '',
+                    createTime: '',
+                    userName: '',
+                    // 请假信息
+                    leave: {
+                        userName: '',
+                        leaveDateList: []
+                    },
+                    // 出差信息
+                    evection: {
+                        userName: '',
+                        createTime: '',
+                        endTime: '',
+                    },
+                }
+            }
+        },
+        mounted() {
+            this.getData();
+            const currentUser = JSON.parse(window.localStorage.getItem("currentUser"));
+            this.userId = currentUser.id;
+        },
+        methods: {
+            // 切换搜索下拉框时搜索列表数据
+            selectChange() {
+                this.getData();
+            },
+            // 搜索
+            handlerSearch() {
+                this.getData();
+            },
+            // 初始化申请表单
+            initApplyFrom(id) {
+                axios.get('/apply/' + id).then(res => {
+                    if (res.data.code === 200 && res.data.data) {
+                        const apply = res.data.data;
+                        const leave = res.data.data.leaveApplyDetails;
+                        const evection = res.data.data.evectionApplyDetails;
+                        this.applyDetails.title = apply.title;
+                        this.applyDetails.applyTime = apply.applyTime;
+                        this.applyDetails.userName = apply.userName;
+                        // 请假信息
+                        if (apply.type === 1) {
+                            this.applyDetails.reason = leave.reason;
+                            this.applyDetails.leave.leaveDateList = leave.leaveDateList.map(ele => {
+                                const durationToHour = this.getDurationToHour(ele.startTime, ele.endTime);
+                                return {
+                                    typeName: ele.typeName,
+                                    startTime: ele.startTime,
+                                    endTime: ele.endTime,
+                                    userName: leave.userName,
+                                    durationToHour: durationToHour,
+                                    durationToDay: (durationToHour / 8).toFixed(1),
+                                }
+                            });
+                        } else if (apply.type === 2) {
+                            // 出差信息
+                            this.applyDetails.reason = evection.reason;
+                            this.applyDetails.evection.reason = evection.reason;
+                            this.applyDetails.evection.startTime = evection.startTime;
+                            this.applyDetails.evection.endTime = evection.endTime;
+                        }
+                    }
+                }).catch((error) => {
+                    console.log(error)
+                    this.$message.error(error);
+                });
+            },
+            // 关闭请假申请弹窗
+            handleLeaveApplyClose() {
+                this.leaveApplyVisible = false;
+            },
+            // 关闭出差申请弹窗
+            handleEvectionApplyClose() {
+                this.evectionApplyVisible = false;
+            },
+            // 计算两个日期之间的小时
+            getDurationToHour(date1, date2) {
+                const startDateTime = Date.parse(date1);
+                const endDateTime = Date.parse(date2);
+                if (startDateTime > endDateTime) {
+                    return 0;
+                }
+                return Math.floor((endDateTime - startDateTime) / (60 * 60 * 1000));
+            },
+            // 详情
+            handlerDetails(row) {
+                this.initApplyFrom(row.id);
+                // 类型:1-请假;2-出差;3...
+                if (row.type === 1) {
+                    this.leaveApplyVisible = true;
+                } else if (row.type === 2) {
+                    this.evectionApplyVisible = true;
+                }
+            },
+            // 查看流程图进度
+            async handlerProcessChart(row) {
+                // 打开新页签显示
+                // window.open('/process/show/' + row.id, "_blank");
+                // 转换流响应到弹窗
+                this.visible = true;
+                let res = await axios({
+                    url: '/apply/show/' + row.id,
+                    method: 'get',
+                    responseType: 'blob'
+                });
+                this.img = window.URL.createObjectURL(res.data);
+            },
+            // 关闭流程图进度弹窗
+            handleClose() {
+                this.visible = false;
+            },
+            // 撤销
+            handlerCancel(row) {
+                this.$confirm('是否确认撤销申请？', '删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }).then(() => {
+                    axios.delete('/apply/cancel/' + row.id).then(res => {
+                        if (res.data.code === 200 && res.data.data) {
+                            this.$message.success('撤销成功');
+                            this.getData();
+                        }
+                    }).catch((error) => {
+                        this.$message.error(error);
+                    });
+                })
+            },
+            // 删除
+            handlerDelete(row) {
+                this.$confirm('是否确认删除申请？', '删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }).then(() => {
+                    axios.delete('/apply/' + row.id).then(res => {
+                        if (res.data.code === 200 && res.data.data) {
+                            this.$message.success('删除成功');
+                            this.getData();
+                        }
+                    }).catch((error) => {
+                        this.$message.error(error);
+                    });
+                });
+            },
+            // 获取列表
+            async getData() {
+                this.loading = true;
+                if (this.searchForm.scope === 1) {
+                    // 我的申请
+                    const currentUser = JSON.parse(window.localStorage.getItem("currentUser"));
+                    this.searchForm.userId = currentUser.id;
+                } else {
+                    this.searchForm.userId = ''
+                }
+                let res = await axios({
+                    url: '/apply/paged',
+                    method: 'post',
+                    data: {...this.searchForm, ...this.paginationData},
+                });
+                if (res.data.code === 200 && res.data.data) {
+                    this.data = res.data.data.rows;
+                    this.paginationData.total = res.data.data.total;
+                } else {
+                    this.$message.error(res.data.msg);
+                }
+                this.loading = false;
+            },
+            // 页码切换
+            pagination(data) {
+                this.paginationData = {...this.paginationData, current: data.current};
+                this.getData();
+            },
+            /**
+             * pageSize 改变时会触发
+             * @param val 每页条数
+             */
+            handleSizeChange(val) {
+                this.pagination({current: this.paginationData.currentPage, size: val});
+            },
+            /**
+             * currentPage 改变时会触发
+             * @param val 当前页
+             */
+            handleCurrentChange(val) {
+                this.pagination({current: val, size: this.paginationData.pageSize});
+            },
+        }
+    })
+</script>
+<style>
+    .el-upload-dragger {
+        margin-left: 50px;
+    }
+
+    .el-upload__tip {
+        margin-top: 15px;
+        color: red;
+    }
+
+    /* 请假说明高度 */
+    .el-textarea__inner {
+        height: 150px;
+    }
+
+    /* 表格内的input设置文字居中 */
+    .table-content .el-input__inner {
+        text-align: center;
+    }
+
+    /* 表格内的类型下拉设置文字居中 */
+    .el-select-dropdown__list {
+        text-align: center;
+    }
+</style>
+
+</html>

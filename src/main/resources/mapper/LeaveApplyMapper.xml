@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cmmplb.activiti.dao.LeaveApplyMapper">
+
+    <sql id="base_column">
+        <!-- @sql select -->
+        bla.`id`          as id,
+        bla.`user_id`     as userId,
+        bla.`status`      as status,
+        bla.`reason`      as reason,
+        bla.`create_time` as createTime,
+        bla.`update_time` as updateTime
+        <!-- @sql from `biz_leave_apply` bla -->
+    </sql>
+
+    <sql id="base_select">
+        select
+        <include refid="base_column"/>
+        from `biz_leave_apply` bla
+    </sql>
+
+    <select id="selectDetailsById" resultType="com.cmmplb.activiti.vo.LeaveApplyVO">
+        select
+        <include refid="base_column"/>
+        ,su.`name` as userName
+        from `biz_leave_apply` bla
+        left join `sys_user` su on bla.`user_id` = su.`id`
+        where bla.`id` = #{id}
+    </select>
+</mapper>

@@ -1,0 +1,32 @@
+spring:
+  activiti:
+    #database-schema-update配置项可以设置流程引擎启动和关闭时数据库执行的策略。 database-schema-update有以下四个值：
+    #-false：false为默认值，设置为该值后，Activiti在启动时，会对比数据库表中保存的版本，如果没有表或者版本不匹配时，将在启动时抛出异常。
+    #-true：设置为该值后，Activiti会对数据库中所有的表进行更新，如果表不存在，则Activiti会自动创建。
+    #-create-drop：Activiti启动时，会执行数据库表的创建操作，在Activiti关闭时，执行数据库表的删除操作。
+    #-drop-create：Activiti启动时，执行数据库表的删除操作在Activiti关闭时，会执行数据库表的创建操作。
+    database-schema-update: true
+    # 开启历史库
+    #db-history-used为true表示使用历史表，如果不配置，则工程启动后可以检查数据库，只建立了17张表，历史表没有建立，则流程图及运行节点无法展示
+    db-history-used: true
+    #history-level对于历史数据，保存到何种粒度，Activiti提供了history-level属性对其进行配置。history-level属性有点像log4j的日志输出级别，该属性有以下四个值：
+    #-none：不保存任何的历史数据，因此，在流程执行过程中，这是最高效的。
+    #-activity：级别高于none，保存流程实例与流程行为，其他数据不保存。
+    #-audit：除activity级别会保存的数据外，还会保存全部的流程任务及其属性。audit为history的默认值。
+    #-full：保存历史数据的最高级别，除了会保存audit级别的数据外，还会保存其他全部流程相关的细节数据，包括一些流程参数等。性能较差，
+    #记录所有实例和变量细节变化，最完整的历史记录，如果需要日后跟踪详细可以开启full（一般不建议开启）
+    history-level: full
+    #校验流程文件，默认校验resources下的processes文件夹里的流程文件
+    check-process-definitions: false
+    # 关闭 SpringAutoDeployment ,默认值:default,如果不关闭，每次重新启动项目的时候，总是会在 ACT_RE_DEPLOYMENT 自动创建
+    # 一个名为 SpringAutoDeployment 工作流记录。但是在开发阶段，需要经常重启项目，久而久之就会导致 ACT_RE_DEPLOYMENT 的记录越来越大了
+    # default: 意思是默认的AutoDeploymentStrategy实现，会把所有的资源 分组到一个单独的部署，这个实现和以前使用的实现是一样的
+    # fail-on-no-process：FailOnNoProcessAutoDeploymentStrategy
+    # never-fail：NeverFailAutoDeploymentStrategy 关闭
+    deployment-mode: never-fail
+    # 默认流程文件自动部署存放路径
+    #process-definition-location-prefix: classpath*:**/processes/
+    # 流程后缀
+#    process-definition-location-suffixes:
+#      - "**.bpmn20.xml"
+#      - "**.bpmn"
