@@ -1,8 +1,13 @@
 package com.cmmplb.activiti.service.impl;
 
 import com.cmmplb.activiti.dto.ModelBpmnDTO;
+import com.cmmplb.activiti.entity.Apply;
+import com.cmmplb.activiti.service.ApplyService;
 import com.cmmplb.activiti.service.BpmnJsService;
+import com.cmmplb.activiti.util.ActivitiUtil;
 import com.cmmplb.activiti.util.ServletUtil;
+import com.cmmplb.activiti.vo.BpmnInfoVO;
+import com.cmmplb.activiti.vo.BpmnProgressVO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -11,8 +16,13 @@ import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.editor.language.json.converter.BpmnJsonConverter;
+import org.activiti.engine.HistoryService;
 import org.activiti.engine.RepositoryService;
+import org.activiti.engine.RuntimeService;
+import org.activiti.engine.history.HistoricActivityInstance;
+import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.repository.Model;
+import org.activiti.engine.runtime.ProcessInstance;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
@@ -32,8 +42,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author penglibo
@@ -46,31 +56,40 @@ import java.util.Map;
 @Transactional
 public class BpmnJsServiceImpl implements BpmnJsService {
 
+    @Autowired
+    private ApplyService applyService;
+
     @Resource
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private RuntimeService runtimeService;
+
+    @Autowired
+    private HistoryService historyService;
 
     @Autowired
     private RepositoryService repositoryService;
 
     @Override
-    public Map<String, Object> getBpmnInfo(String modelId) {
-        Map<String, Object> map = new HashMap<>();
+    public BpmnInfoVO getBpmnInfo(String modelId) {
+        BpmnInfoVO vo = new BpmnInfoVO();
         Model model = repositoryService.getModel(modelId);
         byte[] modelData = repositoryService.getModelEditorSource(modelId);
         if (model != null) {
             try {
-                map.put(ModelDataJsonConstants.MODEL_NAME, model.getName());
-                map.put(ModelDataJsonConstants.MODEL_ID, model.getId());
+                vo.setModelId(model.getId());
+                vo.setName(model.getName());
                 JsonNode jsonNode = objectMapper.readTree(modelData);
                 // bpmn-js适配Activiti-Modeler，把资源转换为xml
                 BpmnModel bpmnModel = (new BpmnJsonConverter()).convertToBpmnModel(jsonNode);
                 byte[] xmlBytes = (new BpmnXMLConverter()).convertToXML(bpmnModel, "UTF-8");
-                map.put("xml", new String(xmlBytes, StandardCharsets.UTF_8));
+                vo.setXml(new String(xmlBytes, StandardCharsets.UTF_8));
             } catch (Exception e) {
                 log.error("Error creating model JSON", e);
             }
         }
-        return map;
+        return vo;
     }
 
     @Override
@@ -136,5 +155,64 @@ public class BpmnJsServiceImpl implements BpmnJsService {
             throw new RuntimeException(e);
         }
         return true;
+    }
+
+    @Override
+    public String showFlowChart(String processDefinitionId) {
+        BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);
+        byte[] xmlBytes = (new BpmnXMLConverter()).convertToXML(bpmnModel, "UTF-8");
+        return new String(xmlBytes, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public BpmnProgressVO showProgressChart(Long id) {
+
+        Apply apply = applyService.getById(id);
+        if (null == apply) {
+            throw new RuntimeException("申请信息已删除");
+        }
+        BpmnProgressVO vo = new BpmnProgressVO();
+        try {
+            // 定义businessKey,一般为流程实例key与实际业务数据的结合
+            String businessKey = apply.getDefKey() + ":" + apply.getId();
+            // 如果流程结束(驳回)，当前流程实例为空
+            ProcessInstance process = runtimeService.createProcessInstanceQuery()
+                    .processDefinitionKey(apply.getDefKey())
+                    .processInstanceBusinessKey(businessKey)
+                    .singleResult();
+
+            // 获取历史流程实例来查询流程进度
+            HistoricProcessInstance processInstance = historyService.createHistoricProcessInstanceQuery().processInstanceBusinessKey(businessKey).singleResult();
+            if (null == processInstance) {
+                throw new RuntimeException("流程信息不存在");
+            }
+            // 获取流程中已经执行的节点，按照执行先后顺序排序
+            List<HistoricActivityInstance> historicActivityInstances = historyService.createHistoricActivityInstanceQuery()
+                    // 这里，如果流程结束的话，process会为空，所以查询历史流程，这样也能看到结束的流程进度信息。
+                    .processInstanceId(null == process ? processInstance.getId() : process.getId())
+                    .orderByHistoricActivityInstanceStartTime().asc().list();
+            BpmnModel bpmnModel = repositoryService.getBpmnModel(processInstance.getProcessDefinitionId());
+            byte[] xmlBytes = (new BpmnXMLConverter()).convertToXML(bpmnModel, "UTF-8");
+
+            // highLightedActivities（需要高亮的执行流程节点集合的获取）以及
+            // highLightedFlows（需要高亮流程连接线集合的获取）
+            // 高亮流程已发生流转的线id集合-已执行的线
+            List<String> highLightedFlowIds = ActivitiUtil.getHighLightedFlows(bpmnModel, historicActivityInstances);
+
+            // 高亮已经执行流程节点ID集合-已执行的节点
+            List<String> highLightedActivitiIds = historicActivityInstances.stream().map(HistoricActivityInstance::getActivityId).collect(Collectors.toList());
+
+            // 正在执行的节点
+            Set<String> activityIds = runtimeService.createExecutionQuery().processInstanceId(processInstance.getId()).list()
+                    .stream().map(org.activiti.engine.runtime.Execution::getActivityId).filter(Objects::nonNull).collect(Collectors.toSet());
+
+            vo.setHighLightedFlowIds(highLightedFlowIds);
+            vo.setHighLightedActivitiIds(highLightedActivitiIds);
+            vo.setActivityIds(activityIds);
+            vo.setXml(new String(xmlBytes, StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            log.error("error", e);
+        }
+        return vo;
     }
 }

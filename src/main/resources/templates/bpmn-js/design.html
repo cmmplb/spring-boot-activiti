@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>流程设计</title>
@@ -13,43 +14,44 @@
     <!-- 引入公共css样式 -->
     <link rel="stylesheet" href="/css/common.css">
     <!-- 引入bpmn-js -->
-    <link rel="stylesheet" href="/bpmn-js/css/bpmn.css"/>
-    <link rel="stylesheet" href="/bpmn-js/css/diagram-js.css"/>
-    <link rel="stylesheet" href="/bpmn-js/css/bpmn-codes.css"/>
-    <link rel="stylesheet" href="/bpmn-js/css/bpmn-embedded.css"/>
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/diagram-js.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn-codes.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn-embedded.css" />
     <script src="/bpmn-js/js/bpmn-modeler.development.js"></script>
     <!-- 引入bpmn-js-properties-panel -->
-    <link rel="stylesheet" href="/bpmn-js-properties-panel/css/properties-panel.css"/>
+    <link rel="stylesheet" href="/bpmn-js-properties-panel/css/properties-panel.css" />
     <script src="/bpmn-js-properties-panel/js/bpmn-js-properties-panel.umd.js"></script>
     <!-- 汉化 -->
     <script src="/bpmn-js/js/zh.js"></script>
     <!-- 小地图，文章教程：https://blog.csdn.net/qq_22167557/article/details/129579313 -->
-    <link rel="stylesheet" href="/diagram-minimap/css/minimap.css"/>
+    <link rel="stylesheet" href="/diagram-minimap/css/minimap.css" />
     <script src="/diagram-minimap/js/diagram-minimap.umd.js"></script>
 
 </head>
+
 <body>
-<div id="app">
-    <!-- 画布左侧流程工具栏 -->
-    <div id="canvas" ref="canvas"></div>
+    <div id="app">
+        <!-- 画布左侧流程工具栏 -->
+        <div id="canvas" ref="canvas"></div>
 
-    <!-- 属性工具栏 -->
-    <div id="properties-panel"></div>
+        <!-- 属性工具栏 -->
+        <div id="properties-panel"></div>
 
-    <!-- 操作 -->
-    <div class="operate">
-        <div>
-            <el-button class="operate-item" size="small" icon="el-icon-search" @click="handlerSave">
-                保存
-            </el-button>
-        </div>
-        <div>
-            <el-button class="operate-item" size="small" icon="el-icon-search" @click="handlerSave(true)">
-                保存并关闭
-            </el-button>
+        <!-- 操作 -->
+        <div class="operate">
+            <div>
+                <el-button class="operate-item" size="small" icon="el-icon-search" @click="handlerSave">
+                    保存
+                </el-button>
+            </div>
+            <div>
+                <el-button class="operate-item" size="small" icon="el-icon-search" @click="handlerSave(true)">
+                    保存并关闭
+                </el-button>
+            </div>
         </div>
     </div>
-</div>
 </body>
 <script>
     new Vue({
@@ -145,8 +147,8 @@
             },
             // 保存
             async handlerSave(close) {
-                const {xml} = await this.bpmnModeler.saveXML();
-                const {svg} = await this.bpmnModeler.saveSVG();
+                const { xml } = await this.bpmnModeler.saveXML();
+                const { svg } = await this.bpmnModeler.saveSVG();
                 const params = new URLSearchParams() // 创建对象
                 params.append("id", this.getQueryString('modelId'));
                 params.append("name", '12');
@@ -221,6 +223,6 @@
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
         border-radius: 6px;
     }
-
 </style>
+
 </html>

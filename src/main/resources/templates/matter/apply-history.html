@@ -13,6 +13,12 @@
     <script src="/js/axios.js"></script>
     <!-- 引入公共css样式 -->
     <link rel="stylesheet" href="/css/common.css">
+    <!-- 引入bpmn-js -->
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/diagram-js.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn-codes.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn-embedded.css" />
+    <script src="/bpmn-js/js/bpmn-modeler.development.js"></script>
 </head>
 
 <body>
@@ -104,6 +110,11 @@
                                 @click="handlerProcessChart(scope.row)" type="text" size="small"
                                 style="color: rgb(78,81,242)">
                                 查看流程进度
+                            </el-button>
+                            <el-button v-if="scope.row.status !== 3 " icon="el-icon-view"
+                                @click="handlerProcessChartBpmn(scope.row)" type="text" size="small"
+                                style="color: rgb(255,137,64)">
+                                查看流程进度(bpmn-js)
                             </el-button>
                             <!-- 管理员和自己能撤销，这里管理员为了简便直接读取缓存写死了1L -->
                             <el-button v-if="scope.row.status === 0 && (scope.row.userId === userId || userId === 1)"
@@ -248,7 +259,13 @@
 
             <!-- 查看流程进度 -->
             <el-dialog title="查看流程进度" :visible="visible" width="1100px" :before-close="handleClose">
-                <img :src="img">
+                <template v-if="showBpmnProcess">
+                    <!-- 画布 -->
+                    <div id="canvas" ref="canvas"></div>
+                </template>
+                <template v-else>
+                    <img :src="img">
+                </template>
                 <div slot="footer" class="dialog-footer">
                     <el-button type="primary" @click="handleClose">关 闭</el-button>
                 </div>
@@ -315,6 +332,8 @@
                 loading: false,
                 // 当前登陆用户
                 userId: undefined,
+                bpmnModeler: undefined,
+                showBpmnProcess: false,
                 // 请假申请弹窗状态
                 leaveApplyVisible: false,
                 // 出差申请弹窗状态
@@ -422,6 +441,7 @@
             },
             // 查看流程图进度
             async handlerProcessChart(row) {
+                this.showBpmnProcess = false;
                 // 打开新页签显示
                 // window.open('/process/show/' + row.id, "_blank");
                 // 转换流响应到弹窗
@@ -432,6 +452,61 @@
                     responseType: 'blob'
                 });
                 this.img = window.URL.createObjectURL(res.data);
+            },
+            // 查看流程图进度
+            async handlerProcessChartBpmn(row) {
+                if (this.bpmnModeler) {
+                    // 如果存在就销毁重新创建，否则会不停添加流程
+                    this.bpmnModeler.destroy();
+                }
+                this.showBpmnProcess = true;
+                // 获取流程节点信息
+                this.visible = true;
+                let res = await axios.get('/bpmn/js/show/' + row.id);
+                if (res.data.code === 200 && res.data.data) {
+                    this.canvas = this.$refs.canvas;
+                    this.bpmnModeler = new BpmnJS({
+                        container: this.canvas,
+                        additionalModules: [
+                            {
+                                paletteProvider: ["value", ''], //禁用/清空左侧工具栏
+                                labelEditingProvider: ["value", ''], //禁用节点编辑
+                                contextPadProvider: ["value", ''], //禁用图形菜单
+                                bendpoints: ["value", {}], //禁用连线拖动
+                                zoomScroll: ["value", ''], //禁用滚动
+                                moveCanvas: ['value', ''], //禁用拖动整个流程图
+                                move: ['value', ''] //禁用单个图形拖动
+                            }
+                        ]
+                    });
+                    const bpmnProgress = res.data.data;
+                    await this.bpmnModeler.importXML(bpmnProgress.xml);
+
+                    const canvas = this.bpmnModeler.get('canvas');
+                    // 使流程图自适应屏幕
+                    // canvas.zoom('fit-viewport', 'auto');
+                    // canvas.zoom(0.8); //缩写至0.8倍
+
+                    //给节点id 添加css样式
+                    // 高亮流程已发生流转的线id集合-已执行的线
+                    bpmnProgress.highLightedFlowIds.forEach((e) => {
+                        if (e) {
+                            canvas.addMarker(e, 'highLightedFlow')
+                        }
+                    })
+                    // 高亮已经执行流程节点ID集合-已执行的节点
+                    bpmnProgress.highLightedActivitiIds.forEach((e) => {
+                        if (e) {
+                            canvas.addMarker(e, 'highLightedActiviti')
+                        }
+                    })
+                    // 正在执行的节点
+                    bpmnProgress.activityIds.forEach((e) => {
+                        if (e) {
+                            canvas.addMarker(e, 'activity')
+                        }
+                    })
+                }
             },
             // 关闭流程图进度弹窗
             handleClose() {
@@ -540,6 +615,35 @@
     .el-select-dropdown__list {
         text-align: center;
     }
+
+    /* 流程画布 */
+    #canvas {
+        width: 100%;
+        height: 400px;
+        border: 1px solid #c0c0c0;
+    }
+
+    /* 已执行的线 */
+    .highLightedFlow .djs-visual> :nth-child(1) {
+        stroke: greenyellow !important;
+        fill: greenyellow !important;
+    }
+
+    /* 已执行的节点 */
+    .highLightedActiviti .djs-visual> :nth-child(1) {
+        stroke: greenyellow !important;
+        fill: rgba(179, 209, 202, 0.14) !important;
+    }
+
+    /* 正在执行的节点 */
+    .activity .djs-visual> :nth-child(1) {
+        stroke: red !important;
+        fill: rgba(179, 209, 202, 0.14) !important;
+    }
+
+    /*.djs-palette {*/
+    /*    display: none;*/
+    /*}*/
 </style>
 
 </html>

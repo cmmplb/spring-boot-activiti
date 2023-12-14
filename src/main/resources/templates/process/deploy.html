@@ -16,6 +16,12 @@
     <!-- 代码高亮插件 -->
     <script src="/highlight/js/highlight.min.js"></script>
     <link rel="stylesheet" href="/highlight/css/github-gist.css">
+    <!-- 引入bpmn-js -->
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/diagram-js.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn-codes.css" />
+    <link rel="stylesheet" href="/bpmn-js/css/bpmn-embedded.css" />
+    <script src="/bpmn-js/js/bpmn-modeler.development.js"></script>
 </head>
 
 <body>
@@ -82,6 +88,10 @@
                             <el-button icon="el-icon-s-promotion" @click="handlerShowProcessChart(scope.row)"
                                 type="text" size="small" style="color: rgb(78,193,242)">
                                 查看流程图
+                            </el-button>
+                            <el-button icon="el-icon-view" @click="handlerShowProcessChartBpmn(scope.row)" type="text"
+                                size="small" style="color: rgb(78,237,242)">
+                                查看流程图(bpmn-js)
                             </el-button>
                             <el-button :icon="scope.row.isSuspended ? 'el-icon-video-play' : 'el-icon-video-pause'"
                                 @click="handlerSuspended(scope.row)" type="text" size="small"
@@ -154,7 +164,13 @@
             <!-- 流程图预览 -->
             <el-dialog title="流程图预览" :visible="processChartVisible" width="1100px"
                 :before-close="handlerCloseProcessChart">
-                <img :src="img">
+                <template v-if="showBpmnProcess">
+                    <!-- 画布 -->
+                    <div id="canvas" ref="canvas"></div>
+                </template>
+                <template v-else>
+                    <img :src="img">
+                </template>
                 <div slot="footer" class="dialog-footer">
                     <el-button type="primary" @click="handlerCloseProcessChart">关 闭</el-button>
                 </div>
@@ -246,6 +262,8 @@
                     current: 1,
                     total: 0,
                 },
+                bpmnModeler: undefined,
+                showBpmnProcess: false,
                 // 加载状态
                 loading: false,
                 // 弹窗状态
@@ -288,6 +306,7 @@
             },
             // 查看流程图
             async handlerShowProcessChart(row) {
+                this.showBpmnProcess = false;
                 // 打开新页签显示
                 // window.open('/deploy/show/model/' + row.id, "_blank");
                 // 转换流响应到弹窗
@@ -298,6 +317,40 @@
                     responseType: 'blob'
                 });
                 this.img = window.URL.createObjectURL(res.data);
+            },
+            // 查看流程图-bpmn
+            async handlerShowProcessChartBpmn(row) {
+                if (this.bpmnModeler) {
+                    // 如果存在就销毁重新创建，否则会不停添加流程
+                    this.bpmnModeler.destroy();
+                }
+                this.showBpmnProcess = true;
+                // 获取流程节点信息
+                this.processChartVisible = true;
+                let res = await axios.get('/bpmn/js/show/model/' + row.id);
+                if (res.data.code === 200 && res.data.data) {
+                    this.canvas = this.$refs.canvas;
+                    this.bpmnModeler = new BpmnJS({
+                        container: this.canvas,
+                        additionalModules: [
+                            {
+                                paletteProvider: ["value", ''], //禁用/清空左侧工具栏
+                                labelEditingProvider: ["value", ''], //禁用节点编辑
+                                contextPadProvider: ["value", ''], //禁用图形菜单
+                                bendpoints: ["value", {}], //禁用连线拖动
+                                zoomScroll: ["value", ''], //禁用滚动
+                                moveCanvas: ['value', ''], //禁用拖动整个流程图
+                                move: ['value', ''] //禁用单个图形拖动
+                            }
+                        ]
+                    });
+                    this.bpmnModeler.importXML(res.data.data);
+
+                    const canvas = this.bpmnModeler.get('canvas');
+                    // 使流程图自适应屏幕
+                    // canvas.zoom('fit-viewport', 'auto');
+                    // canvas.zoom(0.8); //缩写至0.8倍
+                }
             },
             // 关闭流程图预览弹窗
             handlerCloseProcessChart() {
@@ -457,6 +510,13 @@
 
     .el-dialog__body {
         padding: 0 20px;
+    }
+
+    /* 流程画布 */
+    #canvas {
+        width: 100%;
+        height: 260px;
+        border: 1px solid #c0c0c0;
     }
 </style>
 

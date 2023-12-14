@@ -1,6 +1,8 @@
 package com.cmmplb.activiti.service;
 
 import com.cmmplb.activiti.dto.ModelBpmnDTO;
+import com.cmmplb.activiti.vo.BpmnInfoVO;
+import com.cmmplb.activiti.vo.BpmnProgressVO;
 
 import java.util.Map;
 
@@ -11,9 +13,13 @@ import java.util.Map;
  */
 public interface BpmnJsService {
 
-    Map<String,Object> getBpmnInfo(String modelId);
+    BpmnInfoVO getBpmnInfo(String modelId);
 
     void export(String modelId);
 
     boolean saveDesign(String modelId, ModelBpmnDTO dto);
+
+    String showFlowChart(String processDefinitionId);
+
+    BpmnProgressVO showProgressChart(Long id);
 }
