@@ -77,7 +77,13 @@ public class ModelServiceImpl implements ModelService {
         ModelQuery modelQuery = repositoryService.createModelQuery();
         List<Model> list = modelQuery.modelKey(dto.getKey()).list();
         if (list.size() > 0) {
-            throw new RuntimeException("模型标识不能重复");
+            if (list.size() == 1) {
+                if (!list.get(0).getId().equals(model.getId())) {
+                    throw new RuntimeException("模型标识不能重复");
+                }
+            } else {
+                throw new RuntimeException("模型标识不能重复");
+            }
         }
         // 保存模型到act_re_model表
         repositoryService.saveModel(model);

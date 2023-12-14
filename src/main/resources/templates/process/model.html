@@ -7,8 +7,8 @@
     <!-- 引入vue -->
     <script src="/js/vue-2.7.15.js"></script>
     <!-- 引入element ui -->
-    <link rel="stylesheet" href="/css/element-ui/index.css">
-    <script src="/js/element-ui.js"></script>
+    <link rel="stylesheet" href="/element-ui/css/index.css">
+    <script src="/element-ui/js/element-ui.js"></script>
     <!-- 引入axios -->
     <script src="/js/axios.js"></script>
     <!-- 引入公共css样式 -->
@@ -64,6 +64,10 @@
                             <el-button icon="el-icon-edit-outline" @click="handlerDesign(scope.row)" type="text"
                                 size="small" style="color: #ff8940">
                                 设计
+                            </el-button>
+                            <el-button icon="el-icon-tickets" @click="handlerDesignBpmnJs(scope.row)" type="text"
+                                       size="small" style="color: rgb(62,0,128)">
+                                设计(bpmn-js)
                             </el-button>
                             <el-button icon="el-icon-s-promotion" @click="handlerDeployment(scope.row)" type="text"
                                 size="small" style="color: rgb(78,193,242)">
@@ -207,6 +211,10 @@
             // 设计
             handlerDesign(row) {
                 window.open("/editor?modelId=" + row.id, "_blank");
+            },
+            // 设计BpmnJs
+            handlerDesignBpmnJs(row) {
+                window.open("/view/bpmn/design?modelId=" + row.id, "_blank");
             },
             // 导出
             handlerExport(row) {

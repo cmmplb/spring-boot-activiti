@@ -11,12 +11,23 @@
 | activiti     | 7.1.0.M6 |
 | mybatis-plus | 3.4.3.1  |
 
+仓库地址：https://gitee.com/cmmplb/spring-boot-activiti
+
 在v7.1.0.M6.sql脚本里面加上了各个表的字段注释，项目运行后可以执行一遍脚本刷一下表注释。
+
+# todo
+
+- 整合bpmn-js进度查看
+- 多人审批
 
 # 项目图片
 
 方便学习，没有集成认证，点击右上角直接切换用户。
 ![img_3.png](doc%2Fimage%2Fimg_3.png)
+
+流程设计-modeler和bpmn-js
+![img_6.png](doc%2Fimage%2Fimg_6.png)
+![img_7.png](doc%2Fimage%2Fimg_7.png)
 
 流程进度
 ![img_4.png](doc%2Fimage%2Fimg_4.png)

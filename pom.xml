@@ -20,6 +20,7 @@
         <activiti-spring-boot-starter.version>7.1.0.M6</activiti-spring-boot-starter.version>
         <mysql-connector-java.version>8.0.26</mysql-connector-java.version>
         <commons-dbcp.version>1.4</commons-dbcp.version>
+        <dom4j.version>1.6.1</dom4j.version>
         <swagger-annotations.version>1.5.22</swagger-annotations.version>
         <knife4j-spring-boot-starter.version>3.0.3</knife4j-spring-boot-starter.version>
         <mybatis.version>3.5.9</mybatis.version>
@@ -120,6 +121,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <!-- dom4j -->
+        <dependency>
+            <groupId>dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>${dom4j.version}</version>
         </dependency>
         <!-- thymeleaf -->
         <dependency>

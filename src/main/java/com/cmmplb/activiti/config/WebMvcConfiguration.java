@@ -41,6 +41,10 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
         // --已办任务
         registry.addViewController("/view/completed/task").setViewName("/task/completed-task");
 
+        // bpmn-js
+        // --设计
+        registry.addViewController("/view/bpmn/design").setViewName("/bpmn-js/design");
+
         // 流程图编辑器
         registry.addViewController("/editor").setViewName("/modeler");
     }
