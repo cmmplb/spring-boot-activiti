@@ -17,12 +17,15 @@
 
 # todo
 
+- vue3 前后端分离
 - 整合bpmn-js进度查看
 - 多人审批
 
 # 项目图片
 
 #### 方便学习，没有集成认证，点击右上角直接切换用户。
+![img_0.png](doc%2Fimage%2Fimg_0.png)
+
 ![img_3.png](doc%2Fimage%2Fimg_3.png)
 
 #### 流程设计-modeler和bpmn-js
