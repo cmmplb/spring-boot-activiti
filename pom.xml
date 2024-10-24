@@ -25,6 +25,9 @@
         <spring-boot-dependencies.version>2.7.18</spring-boot-dependencies.version>
         <activiti-spring-boot-starter.version>7.1.0.M6</activiti-spring-boot-starter.version>
         <spring-cloud-starter-bootstrap.version>3.1.8</spring-cloud-starter-bootstrap.version>
+        <knife4j-openapi2-spring-boot-starter.version>4.5.0</knife4j-openapi2-spring-boot-starter.version>
+        <fastjson.version>1.2.76</fastjson.version>
+        <mybatis-plus-boot-starter.version>3.4.3.1</mybatis-plus-boot-starter.version>
 
         <!-- 编译 -->
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
@@ -80,6 +83,12 @@
             <groupId>org.activiti</groupId>
             <artifactId>activiti-spring-boot-starter</artifactId>
             <version>${activiti-spring-boot-starter.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- mysql -->
         <dependency>
@@ -98,6 +107,29 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!-- 引入 Knife4j 的官方 start 包,该指南选择 Spring Boot 版本 < 3.0，开发者需要注意-->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
+            <version>${knife4j-openapi2-spring-boot-starter.version}</version>
+        </dependency>
+        <!-- fastjson -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
+        <!-- mybatis-plus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus-boot-starter.version}</version>
+        </dependency>
+        <!-- aop -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
     </dependencies>
 
