@@ -1,0 +1,12 @@
+server:
+  # undertow 容器配置
+  undertow:
+    # 会用于服务器连接的IO操作
+    buffer-size: 1024
+    # 是否分配的直接内存(NIO直接分配的堆外内存)
+    direct-buffers: true
+    threads:
+      # 非阻塞的任务线程池：默认为CPU核心数量
+      io: 16
+      # 阻塞任务线程池: 默认为 IO线程数 * 8
+      worker: 256

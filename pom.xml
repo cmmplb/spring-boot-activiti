@@ -2,30 +2,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 指定当前POM模型的版本 -->
     <modelVersion>4.0.0</modelVersion>
+    <!-- 项目ID，项目坐标核心元素，项目组织唯一的标识符，实际对应JAVA的包的结构，是main目录里java的目录结构。 -->
+    <groupId>io.github.cmmplb.activiti</groupId>
+    <!-- 项目的唯一的标识符，实际对应项目的名称，就是项目根目录的名称。 -->
     <artifactId>spring-boot-activiti</artifactId>
+    <!-- 项目版本 -->
     <version>1.0.0</version>
-    <groupId>com.cmmplb.activiti</groupId>
+    <!-- 项目的打包类型：pom、jar、war -->
+    <packaging>jar</packaging>
+    <!-- 项目名称 -->
     <name>${project.artifactId}</name>
-    <description>${project.artifactId}</description>
+    <!-- 描述信息 -->
+    <description>${project.artifactId}:{project.version}</description>
+    <!-- 项目URL地址 -->
+    <url>https://gitee.com/cmmplb/spring-boot-activiti</url>
 
     <!-- 版本依赖定义 -->
     <properties>
-        <spring-boot-dependencies.version>2.5.3</spring-boot-dependencies.version>
-        <spring-cloud-starter-bootstrap.version>3.0.4</spring-cloud-starter-bootstrap.version>
-        <spring-boot-starter-security.version>2.5.3</spring-boot-starter-security.version>
-        <batik-transcoder.version>1.17</batik-transcoder.version>
-        <batik-codec.version>1.17</batik-codec.version>
-        <activiti-json-converter.version>7.1.0.M6</activiti-json-converter.version>
-        <activiti-spring-boot-starter.version>7.1.0.M6</activiti-spring-boot-starter.version>
         <mysql-connector-java.version>8.0.26</mysql-connector-java.version>
-        <commons-dbcp.version>1.4</commons-dbcp.version>
-        <dom4j.version>1.6.1</dom4j.version>
-        <swagger-annotations.version>1.5.22</swagger-annotations.version>
-        <knife4j-spring-boot-starter.version>3.0.3</knife4j-spring-boot-starter.version>
-        <mybatis.version>3.5.9</mybatis.version>
+        <spring-boot-dependencies.version>2.7.18</spring-boot-dependencies.version>
+        <activiti-spring-boot-starter.version>7.1.0.M6</activiti-spring-boot-starter.version>
+        <spring-cloud-starter-bootstrap.version>3.1.8</spring-cloud-starter-bootstrap.version>
+        <knife4j-openapi2-spring-boot-starter.version>4.5.0</knife4j-openapi2-spring-boot-starter.version>
+        <fastjson.version>1.2.76</fastjson.version>
         <mybatis-plus-boot-starter.version>3.4.3.1</mybatis-plus-boot-starter.version>
-        <pagehelper-spring-boot-starter.version>1.3.0</pagehelper-spring-boot-starter.version>
 
         <!-- 编译 -->
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
@@ -54,49 +56,45 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- bootstrap启动器, 里面的spring-cloud-commons包使用bootstrap.yml -->
+        <!-- bootstrap 启动器, 里面的 spring-cloud-commons 包使用 bootstrap.yml -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
             <version>${spring-cloud-starter-bootstrap.version}</version>
         </dependency>
-        <!-- test模块-集成junit5 -->
+        <!-- undertow容器 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
-        <!-- 流程图设计 -->
+        <!-- web容器 -->
         <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-transcoder</artifactId>
-            <version>${batik-transcoder.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-codec</artifactId>
-            <version>${batik-codec.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.activiti</groupId>
-            <artifactId>activiti-json-converter</artifactId>
-            <version>${activiti-json-converter.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- activiti -->
         <dependency>
             <groupId>org.activiti</groupId>
             <artifactId>activiti-spring-boot-starter</artifactId>
             <version>${activiti-spring-boot-starter.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+        <!-- activiti json 转换器-->
         <dependency>
             <groupId>org.activiti</groupId>
-            <artifactId>activiti-image-generator</artifactId>
+            <artifactId>activiti-json-converter</artifactId>
             <version>${activiti-spring-boot-starter.version}</version>
-        </dependency>
-        <!-- web启动器 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
         <!-- mysql -->
         <dependency>
@@ -105,45 +103,27 @@
             <scope>runtime</scope>
             <version>${mysql-connector-java.version}</version>
         </dependency>
-        <!-- security -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-            <version>${spring-boot-starter-security.version}</version>
-        </dependency>
-        <!-- commons-dbcp -->
-        <dependency>
-            <groupId>commons-dbcp</groupId>
-            <artifactId>commons-dbcp</artifactId>
-            <version>${commons-dbcp.version}</version>
-        </dependency>
         <!-- jdbc -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
-        <!-- dom4j -->
-        <dependency>
-            <groupId>dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-            <version>${dom4j.version}</version>
-        </dependency>
-        <!-- thymeleaf -->
+        <!-- test 模块-集成 junit5 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
-        <!-- swagger-annotations -->
-        <dependency>
-            <groupId>io.swagger</groupId>
-            <artifactId>swagger-annotations</artifactId>
-            <version>${swagger-annotations.version}</version>
-        </dependency>
-        <!-- knife4j接口文档 -->
+        <!-- 引入 Knife4j 的官方 start 包,该指南选择 Spring Boot 版本 < 3.0，开发者需要注意-->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
-            <artifactId>knife4j-spring-boot-starter</artifactId>
-            <version>${knife4j-spring-boot-starter.version}</version>
+            <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
+            <version>${knife4j-openapi2-spring-boot-starter.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
         </dependency>
         <!-- mybatis-plus -->
         <dependency>
@@ -151,51 +131,60 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>${mybatis-plus-boot-starter.version}</version>
         </dependency>
-        <!-- mybatis -->
+        <!-- aop -->
         <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>${mybatis.version}</version>
-        </dependency>
-        <!-- mybatis分页插件 -->
-        <dependency>
-            <groupId>com.github.pagehelper</groupId>
-            <artifactId>pagehelper-spring-boot-starter</artifactId>
-            <version>${pagehelper-spring-boot-starter.version}</version>
-            <!-- 和mybatsi-plus依赖冲突 -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.mybatis</groupId>
-                    <artifactId>mybatis</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.mybatis</groupId>
-                    <artifactId>mybatis-spring</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jsqlparser</artifactId>
-                    <groupId>com.github.jsqlparser</groupId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- maven-compiler-plugin编译Java文件时使用什么版本的jre -->
+            <!-- maven-compiler-plugin 编译 Java 文件时使用什么版本的 jre -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <!-- 源代码使用的JDK版本 -->
-                    <source>${maven.compiler.source}</source>
-                    <!-- 需要生成的目标class文件的编译版本 -->
-                    <target>${maven.compiler.target}</target>
-                    <!-- 字符集编码 -->
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
+            </plugin>
+            <!-- 打包插件 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <!-- maven-compiler-plugin 编译 Java 文件时使用什么版本的 jre -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <!-- 源代码使用的JDK版本 -->
+                        <source>${maven.compiler.source}</source>
+                        <!-- 需要生成的目标class文件的编译版本 -->
+                        <target>${maven.compiler.target}</target>
+                        <!-- 字符集编码 -->
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+                <!-- 打包插件 -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot-dependencies.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <outputDirectory>./target</outputDirectory>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>
