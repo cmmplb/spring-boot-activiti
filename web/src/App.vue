@@ -11,6 +11,6 @@ onMounted(() => {
 
 <template>
   <div>
-    <iframe src="/modeler.html?modelId='dasdada'" width="100%" height="100%" style="border:none"></iframe>
+    <h1>Home</h1>
   </div>
 </template>
