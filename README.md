@@ -20,8 +20,7 @@ doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现
 
 **其他版本查看pom中配置的properties**
 
-feature/2.5.3 分支是前段时间学习 activiti 的时候敲的，使用的 springboot 2.5.3 + thymeleaf 加载 html 快速集成，配合使用
-Element-UI + Vue，前后端未分离。
+tag/2.5.3 分支是之前学习 activiti 的时候敲的，基于 springboot 2.5.3 + thymeleaf 快速集成，配合使用 Element-UI + Vue。
 
 ---
 
