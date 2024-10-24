@@ -20,8 +20,7 @@ doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现
 
 **其他版本查看pom中配置的properties**
 
-feature/2.5.3 分支是前段时间学习 activiti 的时候敲的，使用的 springboot 2.5.3 + thymeleaf 加载 html 快速集成，配合使用
-Element-UI + Vue，前后端未分离。
+feature/2.5.3 分支是之前学习 activiti 的时候敲的，基于 springboot 2.5.3 + thymeleaf 快速集成，配合使用 Element-UI + Vue。
 
 ---
 
@@ -42,6 +41,7 @@ spring-boot-activiti
 ````
 feature
 ├── 1.x         模块搭建
+├── 2.x         基础
 ````
 
 TODO：
@@ -66,6 +66,16 @@ TODO：
 [1.1.后端模块.md](doc%2F1.%E6%A8%A1%E5%9D%97%E6%90%AD%E5%BB%BA%2F1.1.%E5%90%8E%E7%AB%AF%E6%A8%A1%E5%9D%97.md)
 
 [1.2.前端模块.md](doc%2F1.%E6%A8%A1%E5%9D%97%E6%90%AD%E5%BB%BA%2F1.2.%E5%89%8D%E7%AB%AF%E6%A8%A1%E5%9D%97.md)
+
+2.基础
+
+[2.1.流程模型.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.1.%E6%B5%81%E7%A8%8B%E6%A8%A1%E5%9E%8B.md)
+
+[2.2.部署流程.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.2.%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B.md)
+
+[2.3.启动流程.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.3.%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B.md)
+
+[2.4.处理任务.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.4.%E5%A4%84%E7%90%86%E4%BB%BB%E5%8A%A1.md)
 
 学习参考的源码仓库:
 

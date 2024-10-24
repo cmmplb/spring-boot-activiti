@@ -446,8 +446,8 @@ CREATE TABLE `act_re_model`
 (
   `ID_`                           varchar(64) NOT NULL COMMENT '主键',
   `REV_`                          int(11)          DEFAULT NULL COMMENT '乐观锁版本号',
-  `NAME_`                         varchar(255)     DEFAULT NULL COMMENT '模型的名称',
-  `KEY_`                          varchar(255)     DEFAULT NULL COMMENT '模型的关键字',
+  `NAME_`                         varchar(255)     DEFAULT NULL COMMENT '模型名称',
+  `KEY_`                          varchar(255)     DEFAULT NULL COMMENT '模型关键字',
   `CATEGORY_`                     varchar(255)     DEFAULT NULL COMMENT '类型',
   `CREATE_TIME_`                  timestamp   NULL DEFAULT NULL COMMENT '创建时间',
   `LAST_UPDATE_TIME_`             timestamp   NULL DEFAULT NULL COMMENT '最后修改时间',
