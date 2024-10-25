@@ -24,10 +24,14 @@
         <mysql-connector-java.version>8.0.26</mysql-connector-java.version>
         <spring-boot-dependencies.version>2.7.18</spring-boot-dependencies.version>
         <activiti-spring-boot-starter.version>7.1.0.M6</activiti-spring-boot-starter.version>
+        <batik-transcoder.version>1.17</batik-transcoder.version>
         <spring-cloud-starter-bootstrap.version>3.1.8</spring-cloud-starter-bootstrap.version>
         <knife4j-openapi2-spring-boot-starter.version>4.5.0</knife4j-openapi2-spring-boot-starter.version>
         <fastjson.version>1.2.76</fastjson.version>
         <mybatis-plus-boot-starter.version>3.4.3.1</mybatis-plus-boot-starter.version>
+        <mapstruct.version>1.5.2.Final</mapstruct.version>
+        <lombok.version>1.18.30</lombok.version>
+        <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
 
         <!-- 编译 -->
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
@@ -90,6 +94,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- activiti json 转换器 -->
+        <dependency>
+            <groupId>org.activiti</groupId>
+            <artifactId>activiti-json-converter</artifactId>
+            <version>${activiti-spring-boot-starter.version}</version>
+        </dependency>
+        <!-- 流程图设计 -->
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-transcoder</artifactId>
+            <version>${batik-transcoder.version}</version>
+        </dependency>
         <!-- mysql -->
         <dependency>
             <groupId>mysql</groupId>
@@ -108,7 +124,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- 引入 Knife4j 的官方 start 包,该指南选择 Spring Boot 版本 < 3.0，开发者需要注意-->
+        <!-- 引入 Knife4j 的官方 start 包, 该指南选择 Spring Boot 版本 < 3.0，开发者需要注意-->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
@@ -130,6 +146,19 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <!-- 单独引用的时候, lombok 需要在 mapstruct之上, 否则无法设置set -->
+        <!-- mapstruct -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+        <!-- mapstruct-jdk8 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-jdk8</artifactId>
+            <version>${mapstruct.version}</version>
         </dependency>
     </dependencies>
 
@@ -161,6 +190,27 @@
                         <target>${maven.compiler.target}</target>
                         <!-- 字符集编码 -->
                         <encoding>${project.build.sourceEncoding}</encoding>
+                        <annotationProcessorPaths>
+                            <!-- 引入 mapstruct-processor -->
+                            <path>
+                                <groupId>org.mapstruct</groupId>
+                                <artifactId>mapstruct-processor</artifactId>
+                                <version>${mapstruct.version}</version>
+                            </path>
+                            <!-- 引入 lombok-processor -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                            <!-- lombok-mapstruct-binding -->
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <!-- 如果是0.1.0可能出现实现类只创建对象，没有set赋值 -->
+                                <version>${lombok-mapstruct-binding.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <!-- 打包插件 -->

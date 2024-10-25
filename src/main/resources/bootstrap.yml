@@ -7,9 +7,10 @@ spring.main.banner-mode: off
 # 应用程序名称
 spring.application.name: spring-boot-activiti
 # 日志配置
-logging:
-  level:
-    root: info
+logging.level:
+  root: info
+# 开启 knife4j 增强配置
+knife4j.enable: true
 # =====================================================================================
 # 引用配置文件
 spring.profiles.include:

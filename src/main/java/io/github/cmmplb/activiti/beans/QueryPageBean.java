@@ -1,5 +1,7 @@
 package io.github.cmmplb.activiti.beans;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,28 +12,21 @@ import java.io.Serializable;
  */
 
 @Data
+@ApiModel(value = "QueryPageBean", description = "分页条件请求参数")
 public class QueryPageBean implements Serializable {
 
     private static final long serialVersionUID = -6159534153273079325L;
 
-    /**
-     * 每页条数
-     */
+    @ApiModelProperty(value = "每页条数", example = "10")
     private int size;
 
-    /**
-     * 当前页
-     */
+    @ApiModelProperty(value = "当前页", example = "1")
     private int current;
 
-    /**
-     * 起始
-     */
+    @ApiModelProperty(value = "起始页, 自动计算", hidden = true)
     private int start;
 
-    /**
-     * 查询条件
-     */
+    @ApiModelProperty(value = "关键词")
     private String keywords;
 
     public int getCurrent() {

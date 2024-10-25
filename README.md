@@ -11,6 +11,7 @@
 | pagehelper-spring-boot-starter | 1.3.0    |
 | mybatis-plus-boot-starter      | 3.4.3.1  |
 | activiti                       | 7.1.0.M6 |
+| mapstruct                       | 1.5.2.Final |
 
 仓库地址：https://gitee.com/cmmplb/spring-boot-activiti
 
@@ -43,6 +44,7 @@ feature
 ├── 1.x         模块搭建
 ├── 2.x         基础
 ├── 3.1         项目起步
+├── 3.2         模型管理
 ````
 
 TODO：
@@ -81,6 +83,8 @@ TODO：
 3.进阶
 
 [3.1.项目起步.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.1.%E9%A1%B9%E7%9B%AE%E8%B5%B7%E6%AD%A5.md)
+
+[3.2.模型管理.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.2.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md)
 
 学习参考的源码仓库:
 
