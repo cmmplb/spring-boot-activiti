@@ -14,23 +14,31 @@ export default defineConfig({
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue']
   },
   //  开发服务器
-  server:
-    {
-      // 服务端口
-      port: 30000,
-      // 启动成功后打开页面
-      open: false,
-      // 为开发服务器配置自定义代理规则。
-      proxy:
-        {
-          '/api':
-            {
-              // 这里代理到网关的端口
-              target: 'http://localhost:20000',
-              changeOrigin: true,
-              // 当请求地址中以"/api"开头的地址替换成空字符串
-              rewrite: (h) => h.replace(/^\/api/, '')
-            }
-        }
+  server: {
+    // 服务端口
+    port: 30000,
+    // 启动成功后打开页面
+    open: false,
+    // 为开发服务器配置自定义代理规则。
+    proxy:
+      {
+        '/api':
+          {
+            // 这里代理到网关的端口
+            target: 'http://localhost:20000',
+            changeOrigin: true,
+            // 当请求地址中以"/api"开头的地址替换成空字符串
+            rewrite: (h) => h.replace(/^\/api/, '')
+          }
+      }
+  },
+  // 添加一个 scss 的配置，告诉 vite 不要使用 legacy api
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // or "modern", "legacy"
+        api: 'modern-compiler'
+      }
     }
+  }
 });
