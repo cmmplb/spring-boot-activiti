@@ -4,14 +4,14 @@
 
 **相关依赖版本**
 
-| 依赖                             | 版本       |
-|--------------------------------|----------|
-| spring-boot                    | 2.7.18   |
-| knife4j-spring-boot-starter    | 3.0.3    |
-| pagehelper-spring-boot-starter | 1.3.0    |
-| mybatis-plus-boot-starter      | 3.4.3.1  |
-| activiti                       | 7.1.0.M6 |
-| mapstruct                       | 1.5.2.Final |
+| 依赖                             | 版本          |
+|--------------------------------|-------------|
+| spring-boot                    | 2.7.18      |
+| knife4j-spring-boot-starter    | 3.0.3       |
+| pagehelper-spring-boot-starter | 1.3.0       |
+| mybatis-plus-boot-starter      | 3.4.3.1     |
+| activiti                       | 7.1.0.M6    |
+| mapstruct                      | 1.5.2.Final |
 
 仓库地址：https://gitee.com/cmmplb/spring-boot-activiti
 
@@ -90,7 +90,17 @@ TODO：
 
 [3.3.前端布局.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.3.%E5%89%8D%E7%AB%AF%E5%B8%83%E5%B1%80.md)
 
-[3.4.模型管理-前端实现.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.4.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86-%E5%89%8D%E7%AB%AF%E5%AE%9E%E7%8E%B0.md)模型管理-前端实现
+[3.4.模型管理-前端实现.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.4.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86-%E5%89%8D%E7%AB%AF%E5%AE%9E%E7%8E%B0.md)
+
+### tag/2.5.3 相关功能：
+
+Activiti Modeler 查看流程进度 ：
+
+![activiti-modeler-process.png](doc%2Fimage%2Ftag%2F2.5.3%2Factiviti-modeler-process.png)
+
+Bpmn-Js 查看流程进度 ：
+
+![bpmn-js-process.png](doc%2Fimage%2Ftag%2F2.5.3%2Fbpmn-js-process.png)
 
 学习参考的源码仓库:
 
