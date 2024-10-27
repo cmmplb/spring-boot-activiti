@@ -8,7 +8,6 @@
         v-if="!hasChildren(menu)"
         @click="open(menu)"
       >
-        <i :class="menu.icon"></i>
         <el-icon>
           <!-- 使用 component 组件, 通过 is 动态绑定图标, 值为组件名称 -->
           <component :is="menu.icon"></component>
