@@ -1,9 +1,0 @@
-spring:
-  #jackson响应配置
-  jackson:
-    default-property-inclusion: NON_NULL
-    date-format: yyyy-MM-dd HH:mm:ss #响应时间-也可以使用注解在实体类上@JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
-    time-zone: GMT+8
-    serialization:
-      indent_output: true #格式化输出
-      fail_on_empty_beans: false #忽略无法转换的对象-为null的数据就去掉了

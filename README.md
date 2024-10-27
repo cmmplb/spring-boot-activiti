@@ -1,107 +1,106 @@
 # 学习springboot整合activiti
 
-这里为了学习，快速集成，页面用的thymeleaf加载html
-配合使用element-ui+vue
+配合使用 Element Plus + Vue3（idea开发，需要安装lombok插件）
 
-版本：
+**相关依赖版本**
 
-| 依赖           | 版本       |
-|--------------|----------|
-| springboot   | 2.5.3    |
-| activiti     | 7.1.0.M6 |
-| mybatis-plus | 3.4.3.1  |
+| 依赖                             | 版本          |
+|--------------------------------|-------------|
+| spring-boot                    | 2.7.18      |
+| knife4j-spring-boot-starter    | 3.0.3       |
+| pagehelper-spring-boot-starter | 1.3.0       |
+| mybatis-plus-boot-starter      | 3.4.3.1     |
+| activiti                       | 7.1.0.M6    |
+| mapstruct                      | 1.5.2.Final |
 
 仓库地址：https://gitee.com/cmmplb/spring-boot-activiti
 
-在v7.1.0.M6.sql脚本里面加上了各个表的字段注释，项目运行后可以执行一遍脚本刷一下表注释。
+doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现步骤，
 
-# todo
+- doc/db/v7.1.0.M6.sql 脚本是 activiti 初始化时自动生成的相关表，这里加上了各个表的字段注释，可以执行一遍脚本刷一下表注释（初始化生成的表名是大写的，脚本里面的是小写的）。
 
-- vue3 前后端分离
-- 整合bpmn-js进度查看
-- 多人审批
+**其他版本查看pom中配置的properties**
 
-# 项目图片
+tag/2.5.3 分支是之前学习 activiti 的时候敲的，基于 springboot 2.5.3 + thymeleaf 快速集成，配合使用 Element-UI + Vue。
 
-#### 方便学习，没有集成认证，点击右上角直接切换用户。
-![img_0.png](doc%2Fimage%2Fimg_0.png)
+---
 
-![img_3.png](doc%2Fimage%2Fimg_3.png)
-
-#### 流程设计-modeler和bpmn-js
-![img_6.png](doc%2Fimage%2Fimg_6.png)
-![img_7.png](doc%2Fimage%2Fimg_7.png)
-
-#### 流程进度-modeler和bpmn-js
-![img_4.png](doc%2Fimage%2Fimg_4.png)
-![img_8.png](doc%2Fimage%2Fimg_8.png)
-
-代办任务
-![img_5.png](doc%2Fimage%2Fimg_5.png)
-
-# 整合Activiti Modeler
-
-官网：https://www.activiti.org/get-started
-
-下载5.x Download包
-
-解压wars/activiti-explorer.war，把diagram-viewer、editor-app、modeler.html文件拷贝到resource/static目录下，将stencilset.json拷贝到resource/目录下
-
-修改editor-app/app-cfg.js，演示版不需要路径
+## 项目结构
 
 ````
-ACTIVITI.CONFIG = {
-    // 这个是默认的项目路径
-	//'contextRoot' : '/activiti-explorer/service',
-	// 改成自己项目路径
-	'contextRoot' : '',
-};
+spring-boot-activiti
+├── doc                                                 文档目录
+├── src                                                 后端模块 [20000]
+├── web                                                 前端模块 [30000]
+└── pom.xml                                             工程依赖
 ````
 
-# 一些设计操作
+---- 
 
-双击事件可以编辑事件名称
-
-从互斥网关上的连线设置条件，在这个流转条件里面可以填写表达式。
-![img.png](doc%2Fimage%2Fimg.png)
-
-然后还有一个要把连线调整方向选择这个连线加号图标，添加分支拖动。
-![img_1.png](doc%2Fimage%2Fimg_1.png)
-
-idea设计安装的插件：
-Activiti BPMN visualizer
-
-# 遇到的一些问题
-
-### activiti7移除了静态方法创建ProcessDiagramGenerator，需要创建DefaultProcessDiagramGenerator实例
-
-参数移除了imageType、customClassLoader，生成的文件格式为svg，在响应给客户端流程图的时候，可以设置响应类型
+防止每个功能代码迭代替换了前面步骤的代码，所以每个功能模块的代码都放在了单独的分支上，按照doc目录下的序号打的分支，跟着学习的话可以按着顺序切换分支查看。
 
 ````
-response.setContentType("image/svg+xml");
-IOUtils.copy(is, response.getOutputStream());
+feature
+├── 1.x         模块搭建
+├── 2.x         基础
+├── 3.1         项目起步
+├── 3.2         模型管理
+├── 3.3         前端布局
+├── 3.4         模型管理-前端实现
 ````
 
-或者把svg转换为png
+TODO：
 
-````
-new PNGTranscoder().transcode(new TranscoderInput(is), new TranscoderOutput(response.getOutputStream()));
-````
+- 首页数据统计
+- 流程管理
+    - 模型管理
+    - 部署管理
+- 事项申请
+    - 发起申请
+    - 申请历史
+- 办理事项
+    - 代办任务
+    - 已办任务
+- Spring Security 新版配置
+- 用户、用户组、租户
 
-maven本地仓库有jar，但是项目引用失败=》把对应jar的_remote.repositories文件删除
+### 文档目录
 
-````shell
-#!/usr/bin/env bash
-# 遍历删除当前目录下指定名称的文件（-type f 来指定是删除文件） *.lastUpdated 名称文件
-find . -name '*.lastUpdated' -type f -print -exec rm -rf {} \;
-find . -name '*_remote.repositories' -type f -print -exec rm -rf {} \;
-````
+1.模块搭建
 
-### 流程图节点高亮
+[1.1.后端模块.md](doc%2F1.%E6%A8%A1%E5%9D%97%E6%90%AD%E5%BB%BA%2F1.1.%E5%90%8E%E7%AB%AF%E6%A8%A1%E5%9D%97.md)
 
-这里参照DefaultProcessDiagramGenerator，重写了生成逻辑
+[1.2.前端模块.md](doc%2F1.%E6%A8%A1%E5%9D%97%E6%90%AD%E5%BB%BA%2F1.2.%E5%89%8D%E7%AB%AF%E6%A8%A1%E5%9D%97.md)
 
-![img_2.png](doc%2Fimage%2Fimg_2.png)
+2.基础
+
+[2.1.流程模型.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.1.%E6%B5%81%E7%A8%8B%E6%A8%A1%E5%9E%8B.md)
+
+[2.2.部署流程.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.2.%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B.md)
+
+[2.3.启动流程.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.3.%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B.md)
+
+[2.4.处理任务.md](doc%2F2.%E5%9F%BA%E7%A1%80%2F2.4.%E5%A4%84%E7%90%86%E4%BB%BB%E5%8A%A1.md)
+
+3.进阶
+
+[3.1.项目起步.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.1.%E9%A1%B9%E7%9B%AE%E8%B5%B7%E6%AD%A5.md)
+
+[3.2.模型管理.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.2.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86.md)
+
+[3.3.前端布局.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.3.%E5%89%8D%E7%AB%AF%E5%B8%83%E5%B1%80.md)
+
+[3.4.模型管理-前端实现.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.4.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86-%E5%89%8D%E7%AB%AF%E5%AE%9E%E7%8E%B0.md)
+
+### tag/2.5.3 相关功能：
+
+Activiti Modeler 查看流程进度 ：
+
+![activiti-modeler-process.png](doc%2Fimage%2Ftag%2F2.5.3%2Factiviti-modeler-process.png)
+
+Bpmn-Js 查看流程进度 ：
+
+![bpmn-js-process.png](doc%2Fimage%2Ftag%2F2.5.3%2Fbpmn-js-process.png)
 
 学习参考的源码仓库:
 
