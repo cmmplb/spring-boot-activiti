@@ -1,6 +1,7 @@
 package io.github.cmmplb.activiti.domain.dto;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -13,7 +14,7 @@ import lombok.Data;
  */
 
 @Data
-@ApiModel(value = "ModelDTO", description = "流程设计模型请求参数")
+@ApiModel(value = "ModelDTO", description = "模型请求参数")
 public class ModelDTO {
 
     @ApiModelProperty(value = "模型ID", hidden = true)
@@ -34,12 +35,10 @@ public class ModelDTO {
     @ApiModelProperty(value = "模型描述", example = "请假申请流程")
     private String description;
 
-    @ApiModelProperty(value = "流程设计文件xml")
-    @JSONField(name = "json_xml")
+    @ApiModelProperty(value = "流程设计文件 xml json 格式")
     private String jsonXml;
 
-    @ApiModelProperty(value = "流程设计图片svg")
-    @JSONField(name = "svg_xml")
+    @ApiModelProperty(value = "流程设计图片 svg")
     private String svgXml;
 
 }

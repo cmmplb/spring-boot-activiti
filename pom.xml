@@ -25,6 +25,7 @@
         <spring-boot-dependencies.version>2.7.18</spring-boot-dependencies.version>
         <activiti-spring-boot-starter.version>7.1.0.M6</activiti-spring-boot-starter.version>
         <batik-transcoder.version>1.17</batik-transcoder.version>
+        <batik-codec.version>1.17</batik-codec.version>
         <spring-cloud-starter-bootstrap.version>3.1.8</spring-cloud-starter-bootstrap.version>
         <knife4j-openapi2-spring-boot-starter.version>4.5.0</knife4j-openapi2-spring-boot-starter.version>
         <fastjson.version>1.2.76</fastjson.version>
@@ -105,6 +106,11 @@
             <groupId>org.apache.xmlgraphics</groupId>
             <artifactId>batik-transcoder</artifactId>
             <version>${batik-transcoder.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>batik-codec</artifactId>
+            <version>${batik-codec.version}</version>
         </dependency>
         <!-- mysql -->
         <dependency>

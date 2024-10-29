@@ -26,9 +26,5 @@ public interface ModelService {
 
     void export(String id);
 
-    boolean saveDesign(ModelDTO dto);
-
-    ModelVO getEditorJson(String id);
-
     boolean deployment(String id);
 }

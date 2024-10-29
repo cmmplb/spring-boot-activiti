@@ -45,8 +45,24 @@
         :paginationData="paginationData"
       >
         <template #buttons>
-          <el-table-column fixed="right" align="center" label="操作" min-width="120" width="220">
+          <el-table-column fixed="right" align="center" label="操作" min-width="120" width="250">
             <template #default="scope">
+              <el-button
+                icon="Document"
+                @click="handlerDesign(scope.row)"
+                text
+                style="color: #ff9100"
+              >设计
+              </el-button
+              >
+              <el-button
+                icon="Document"
+                @click="handlerDesignBpmnJs(scope.row)"
+                text
+                style="color: rgb(62,0,128)"
+              >设计(bpmn-js)
+              </el-button
+              >
               <el-button
                 icon="Edit"
                 @click="handlerEdit(scope.row)"
@@ -113,6 +129,11 @@ const columns = reactive<Column[]>([
     width: 180
   },
   {
+    prop: 'description',
+    label: '模型描述',
+    width: 180
+  },
+  {
     prop: 'createTime',
     label: '创建时间'
   },
@@ -174,6 +195,18 @@ const handlerAdd = () => {
   if (formModelRef.value) {
     formModelRef.value.init(undefined);
   }
+};
+
+// 点击设计按钮
+const handlerDesign = (row: ModelVO) => {
+  // 跳转到模型设计页面
+  window.open('/activiti-modeler?modelId=' + row.id, '_blank');
+};
+
+// 点击设计(bpmn-js)按钮
+const handlerDesignBpmnJs = (row: ModelVO) => {
+  // 跳转到模型设计页面
+  window.open('/bpmn-js?modelId=' + row.id, '_blank');
 };
 
 // 点击编辑按钮

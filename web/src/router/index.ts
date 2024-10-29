@@ -7,7 +7,6 @@ const constantRoutes = [
   {
     path: '/',
     redirect: '/',
-    component: Layout,
     children: [
       {
         path: '/',
@@ -16,6 +15,16 @@ const constantRoutes = [
         meta: {title: '首页', icon: 'dashboard', affix: true}
       }
     ]
+  },
+  {
+    path: '/activiti-modeler',
+    component: () => import ('@/views/process/model/activiti-modeler.vue'),
+    name: 'activiti-modeler 模型设计'
+  },
+  {
+    path: '/bpmn-js',
+    component: () => import ('@/views/process/model/bpmn-js.vue'),
+    name: 'bpmn-js 模型设计'
   },
   {
     path: '/process',

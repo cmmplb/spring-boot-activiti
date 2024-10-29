@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 
@@ -15,7 +16,7 @@ import java.util.Date;
  */
 
 @Data
-@ApiModel(value = "ModelVO", description = "流程设计模型")
+@ApiModel(value = "ModelVO", description = "流程模型返回参数")
 public class ModelVO {
 
     @ApiModelProperty(value = "主键", example = "1")
@@ -23,6 +24,9 @@ public class ModelVO {
 
     @ApiModelProperty(value = "名称", example = "请假模型")
     String name;
+
+    @ApiModelProperty(value = "模型作者", example = "cmmplb")
+    private String author;
 
     @ApiModelProperty(value = "模型关键字", example = "leave")
     String key;
@@ -41,6 +45,9 @@ public class ModelVO {
     @ApiModelProperty(value = "版本，从1开始", example = "1")
     private Integer version;
 
+    @ApiModelProperty(value = "模型描述", example = "请假申请流程")
+    private String description;
+
     @ApiModelProperty(value = "以json格式保存流程定义的信息,数据源信息", example = "{\"name\":\"请假申请\",\"description\":\"请假申请流程\",\"revision\":1}")
     private String metaInfo;
 
@@ -49,4 +56,13 @@ public class ModelVO {
 
     @ApiModelProperty(value = "流程设计 json 信息")
     private JSONObject model;
+
+    // 重写方法
+    public String getDescription() {
+        if (StringUtils.isNotEmpty(metaInfo)) {
+            // 获取 metaInfo 中的 description 信息
+            return JSONObject.parseObject(metaInfo).getString("description");
+        }
+        return description;
+    }
 }
