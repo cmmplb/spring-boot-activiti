@@ -1,8 +1,10 @@
-# 学习springboot整合activiti
+# 学习 springboot 整合 activiti
 
 配合使用 Element Plus + Vue3（idea开发，需要安装lombok插件）
 
 **相关依赖版本**
+
+后台：
 
 | 依赖                             | 版本          |
 |--------------------------------|-------------|
@@ -13,15 +15,31 @@
 | activiti                       | 7.1.0.M6    |
 | mapstruct                      | 1.5.2.Final |
 
-仓库地址：https://gitee.com/cmmplb/spring-boot-activiti
+**其他版本查看 pom 中配置的 properties**
 
-doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现步骤，
+前端：
+
+| 依赖                       | 版本      |
+|--------------------------|---------|
+| vue                      | 3.5.10  |
+| typescript               | 5.5.3   |
+| element-plus             | 2.8.6   |
+| sass                     | 1.80.4  |
+| sass-loader              | 16.0.2  |
+| activiti-modeler         | 5.22.0  |
+| bpmn-js                  | 17.11.1 |
+| bpmn-js-properties-panel | 5.25.0  |
+| diagram-js-minimap       | 5.1.0   |
+
+**其他版本查看 package.json**
+
+- 仓库地址：https://gitee.com/cmmplb/spring-boot-activiti
+
+- doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现步骤
 
 - doc/db/v7.1.0.M6.sql 脚本是 activiti 初始化时自动生成的相关表，这里加上了各个表的字段注释，可以执行一遍脚本刷一下表注释（初始化生成的表名是大写的，脚本里面的是小写的）。
 
-**其他版本查看pom中配置的properties**
-
-tag/2.5.3 分支是之前学习 activiti 的时候敲的，基于 springboot 2.5.3 + thymeleaf 快速集成，配合使用 Element-UI + Vue。
+- tag/2.5.3 分支是之前学习 activiti 的时候敲的，基于 springboot 2.5.3 + thymeleaf 快速集成，配合使用 Element-UI + Vue。
 
 ---
 
@@ -47,22 +65,23 @@ feature
 ├── 3.2         模型管理
 ├── 3.3         前端布局
 ├── 3.4         模型管理-前端实现
+├── 3.5         整合activiti-modeler+bpmn-js
 ````
 
 TODO：
 
-- 首页数据统计
+- 首页数据统计 ❌
 - 流程管理
-    - 模型管理
-    - 部署管理
+    - 模型管理 ✅
+    - 部署管理 ❌
 - 事项申请
-    - 发起申请
-    - 申请历史
+    - 发起申请 ❌
+    - 申请历史 ❌
 - 办理事项
-    - 代办任务
-    - 已办任务
-- Spring Security 新版配置
-- 用户、用户组、租户
+    - 代办任务 ❌
+    - 已办任务 ❌
+- Spring Security 新版配置 ❌
+- 用户、用户组、租户 ❌
 
 ### 文档目录
 
@@ -92,13 +111,15 @@ TODO：
 
 [3.4.模型管理-前端实现.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.4.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86-%E5%89%8D%E7%AB%AF%E5%AE%9E%E7%8E%B0.md)
 
+[3.5.整合activiti-modeler+bpmn-js.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.5.%E6%95%B4%E5%90%88activiti-modeler%2Bbpmn-js.md)
+
 ### tag/2.5.3 相关功能：
 
 Activiti Modeler 查看流程进度 ：
 
 ![activiti-modeler-process.png](doc%2Fimage%2Ftag%2F2.5.3%2Factiviti-modeler-process.png)
 
-Bpmn-Js 查看流程进度 ：
+Bpmn-Js 查看流程进度：
 
 ![bpmn-js-process.png](doc%2Fimage%2Ftag%2F2.5.3%2Fbpmn-js-process.png)
 

@@ -41,13 +41,13 @@ const logout = () => {
       border-radius: 50%;
     }
 
-    &.hover {
-      // 鼠标指针变成手势
-      cursor: pointer;
-    }
-
     .username {
       padding: 0 10px;
+    }
+
+    &:hover {
+      // 鼠标指针变成手势
+      cursor: pointer;
     }
   }
 

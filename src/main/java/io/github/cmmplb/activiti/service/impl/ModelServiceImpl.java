@@ -23,10 +23,6 @@ import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.Model;
 import org.activiti.engine.repository.ModelQuery;
-import org.apache.batik.transcoder.TranscoderException;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.Arrays;
@@ -36,9 +32,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -105,7 +99,7 @@ public class ModelServiceImpl implements ModelService {
         // 流程版本
         properties.put(StencilConstants.PROPERTY_PROCESS_VERSION, String.valueOf(revision));
         // 流程作者
-        properties.put(StencilConstants.PROPERTY_PROCESS_AUTHOR, dto.getName());
+        properties.put(StencilConstants.PROPERTY_PROCESS_AUTHOR, dto.getAuthor());
         bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES, properties);
 
         HashMap<String, String> stencilset = new HashMap<>();
@@ -146,7 +140,27 @@ public class ModelServiceImpl implements ModelService {
         model.setMetaInfo(JSON.toJSONString(metaInfo));
         // 修改模型到 act_re_model 表（repositoryService 中修改和保存的方法是同一个）
         repositoryService.saveModel(model);
-        // 这里只修改模型信息, 不用修改模型文件, 模型文件由页面设计改
+
+        // 更新流程设计文件信息
+
+        // 获取流程定义文件
+        byte[] modelData = repositoryService.getModelEditorSource(dto.getId());
+        if (!Arrays.isNullOrEmpty(modelData)) {
+            JSONObject bpmnXml = JSON.parseObject(new String(modelData, StandardCharsets.UTF_8));
+            // 更新流程设计文件
+            // 修改流程文件中的版本号 ( 这里看需求, 是以模型的版本号还是取流程设计的版本号 )
+            JSONObject properties = bpmnXml.getJSONObject(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES);
+            // 名称
+            properties.put(StencilConstants.PROPERTY_NAME, dto.getName());
+            // 描述
+            properties.put(StencilConstants.PROPERTY_DOCUMENTATION, dto.getDescription());
+            // 我这里是把模型的版本号作为流程设计版本号, 所以修改流程设计中的流程版本会不生效
+            properties.put(StencilConstants.PROPERTY_PROCESS_VERSION, String.valueOf(revision));
+            // 作者
+            properties.put(StencilConstants.PROPERTY_PROCESS_AUTHOR, dto.getAuthor());
+            bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES, properties);
+            repositoryService.addModelEditorSource(model.getId(), bpmnXml.toJSONString().getBytes(StandardCharsets.UTF_8));
+        }
         return true;
     }
 
@@ -187,7 +201,16 @@ public class ModelServiceImpl implements ModelService {
         if (null == model) {
             throw new RuntimeException("模型信息不存在");
         }
-        return ConverterUtil.convert(ModelConvert.class, model);
+        ModelVO vo = ConverterUtil.convert(ModelConvert.class, model);
+        // 获取流程定义文件
+        byte[] modelData = repositoryService.getModelEditorSource(id);
+        if (!Arrays.isNullOrEmpty(modelData)) {
+            JSONObject bpmnXml = JSON.parseObject(new String(modelData, StandardCharsets.UTF_8));
+            JSONObject properties = bpmnXml.getJSONObject(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES);
+            // 设置作者信息
+            vo.setAuthor(properties.getString(StencilConstants.PROPERTY_PROCESS_AUTHOR));
+        }
+        return vo;
     }
 
     @Override
@@ -214,69 +237,6 @@ public class ModelServiceImpl implements ModelService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public boolean saveDesign(ModelDTO dto) {
-        Model model = repositoryService.getModel(dto.getId());
-        if (null == model) {
-            throw new RuntimeException("模型信息不存在");
-        }
-        JSONObject metaInfo = JSON.parseObject(model.getMetaInfo());
-
-        // 版本号, 这里直接在代码里加 1 了, 应该在数据库利用行锁 version = version + 1 的方式来修改, 或者加锁, 防止数据重复更新
-        int revision = model.getVersion() + 1;
-        // 设计界面也可以修改相关模型信息
-        metaInfo.put(ModelDataJsonConstants.MODEL_NAME, dto.getName());
-        // 版本号从模型信息中获取, 因为设计页面上的版本号是字符串, 而模型信息的版本号是 int, 防止转换异常
-        metaInfo.put(ModelDataJsonConstants.MODEL_REVISION, revision);
-        metaInfo.put(ModelDataJsonConstants.MODEL_DESCRIPTION, dto.getDescription());
-
-        model.setMetaInfo(metaInfo.toString());
-        model.setName(dto.getName());
-        // 更新模型信息
-        repositoryService.saveModel(model);
-
-        // 更新流程设计文件
-        JSONObject bpmnXml = JSON.parseObject(dto.getSvgXml());
-        // 修改流程文件中的版本号 ( 这里看需求, 是以模型的版本号还是取流程设计的版本号 )
-        JSONObject properties = bpmnXml.getJSONObject(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES);
-        // 我这里是把模型的版本号作为流程设计版本号, 所以修改流程设计中的流程版本会不生效
-        properties.put(StencilConstants.PROPERTY_PROCESS_VERSION, String.valueOf(revision));
-        bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES, properties);
-        repositoryService.addModelEditorSource(model.getId(), bpmnXml.toJSONString().getBytes(StandardCharsets.UTF_8));
-
-        // 将 svg 图片转换为 png 保存
-        InputStream svgStream = new ByteArrayInputStream(dto.getSvgXml().getBytes(StandardCharsets.UTF_8));
-        TranscoderInput input = new TranscoderInput(svgStream);
-        // png 图片生成器
-        PNGTranscoder transcoder = new PNGTranscoder();
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        TranscoderOutput output = new TranscoderOutput(outStream);
-
-        try {
-            transcoder.transcode(input, output);
-            final byte[] result = outStream.toByteArray();
-            // 更新流程设计图片
-            repositoryService.addModelEditorSourceExtra(model.getId(), result);
-            outStream.close();
-        } catch (TranscoderException | IOException e) {
-            throw new BusinessException("更新流程设计图片异常");
-        }
-        return true;
-    }
-
-    @Override
-    public ModelVO getEditorJson(String id) {
-        Model model = repositoryService.getModel(id);
-        if (null == model) {
-            throw new BusinessException("模型信息不存在");
-        }
-        ModelVO vo = ConverterUtil.convert(ModelConvert.class, model);
-        // 获取流程定义文件
-        String modelInfo = new String(repositoryService.getModelEditorSource(model.getId()), StandardCharsets.UTF_8);
-        vo.setModel(JSON.parseObject(modelInfo));
-        return vo;
     }
 
     @Override

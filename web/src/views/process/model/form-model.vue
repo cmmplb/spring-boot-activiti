@@ -15,8 +15,14 @@
         <el-form-item label="模型名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入模型名称"></el-input>
         </el-form-item>
+        <el-form-item label="模型作者" prop="name">
+          <el-input v-model="form.author" placeholder="请输入模型作者"></el-input>
+        </el-form-item>
         <el-form-item label="模型类型" prop="category">
           <el-input v-model="form.category" placeholder="请输入模型类型"></el-input>
+        </el-form-item>
+        <el-form-item label="模型描述" prop="description">
+          <el-input v-model="form.description" placeholder="请输入模型描述"></el-input>
         </el-form-item>
       </el-form>
       <template #footer>

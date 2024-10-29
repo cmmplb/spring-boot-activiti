@@ -75,24 +75,9 @@ public class ModelController {
         modelService.export(id);
     }
 
-    @ApiOperation("保存流程设计")
-    @PutMapping(value = "/save/{id}")
-    @ApiOperationSupport(order = 7, ignoreParameters = {"id"})
-    public Result<Boolean> saveDesign(@PathVariable(value = "id") String id, ModelDTO dto) {
-        dto.setId(id);
-        return ResultUtil.success(modelService.saveDesign(dto));
-    }
-
-    @ApiOperation("获取模型流程设计")
-    @GetMapping(value = "/json/{id}")
-    @ApiOperationSupport(order = 8, ignoreParameters = {"id"})
-    public Result<ModelVO> getEditorJson(@PathVariable(value = "id") String id) {
-        return ResultUtil.success(modelService.getEditorJson(id));
-    }
-
     @ApiOperation("部署模型")
     @PostMapping("/deploy/{id}")
-    @ApiOperationSupport(order = 9, ignoreParameters = {"id"})
+    @ApiOperationSupport(order = 7, ignoreParameters = {"id"})
     public Result<Boolean> deployment(@PathVariable(value = "id") String id) {
         return ResultUtil.success(modelService.deployment(id));
     }
