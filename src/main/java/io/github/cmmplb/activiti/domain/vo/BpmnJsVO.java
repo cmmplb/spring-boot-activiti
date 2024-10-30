@@ -17,9 +17,6 @@ public class BpmnJsVO {
     @ApiModelProperty(value = "设计页面中使用的字段为 modelId", example = "1")
     private String modelId;
 
-    @ApiModelProperty(value = "名称", example = "请假模型")
-    private String name;
-
-    @ApiModelProperty(value = "流程 xml 字符串", example = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<definitions xmlns=\"http://www.omg.org/")
+    @ApiModelProperty(value = "流程设计 xml")
     private String xml;
 }

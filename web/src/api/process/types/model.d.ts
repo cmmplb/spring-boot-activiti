@@ -2,15 +2,15 @@
 declare interface ModelVO {
   id: string;
   name: string;
+  author: string;
   key: string;
-  description: string;
   category: string;
+  description: string;
   createTime: string;
   lastUpdateTime: string;
   version: number;
   metaInfo: string;
   deploymentId: string;
-  model: Object;
 }
 
 declare interface ModelDTO {
@@ -20,6 +20,5 @@ declare interface ModelDTO {
   author: string;
   category: string;
   description: string;
-  jsonXml?: string;
-  svgXml?: string;
+  designType: number;
 }

@@ -20,10 +20,10 @@ import java.util.Date;
 public class ModelerVO {
 
     @ApiModelProperty(value = "设计页面中使用的字段为 modelId", example = "1")
-    String modelId;
+    private String modelId;
 
     @ApiModelProperty(value = "名称", example = "请假模型")
-    String name;
+    private String name;
 
     @ApiModelProperty(value = "创建时间", example = "2023-11-11 12:12:11")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")

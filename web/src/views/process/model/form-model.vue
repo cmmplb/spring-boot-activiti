@@ -15,14 +15,21 @@
         <el-form-item label="模型名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入模型名称"></el-input>
         </el-form-item>
-        <el-form-item label="模型作者" prop="name">
-          <el-input v-model="form.author" placeholder="请输入模型作者"></el-input>
-        </el-form-item>
         <el-form-item label="模型类型" prop="category">
           <el-input v-model="form.category" placeholder="请输入模型类型"></el-input>
         </el-form-item>
+        <el-form-item label="模型设计类型" prop="type">
+          <el-radio-group v-model="form.designType">
+            <el-radio :key="1" :label="1">activiti-modeler</el-radio>
+            <el-radio :key="2" :label="2">bpmn-js</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item label="模型描述" prop="description">
           <el-input v-model="form.description" placeholder="请输入模型描述"></el-input>
+        </el-form-item>
+        <!-- 只有 activiti-modeler 才需要填写作者，bpmn-js 没有 properties 属性 -->
+        <el-form-item v-if="form.designType === 1" label="模型作者" prop="author">
+          <el-input v-model="form.author" placeholder="请输入模型作者"></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -54,7 +61,8 @@ const form = reactive<ModelDTO>({
   name: '',
   author: '',
   category: '',
-  description: ''
+  description: '',
+  designType: 1
 });
 // 表单校验规则
 const rules = reactive<FormRules<ModelDTO>>({

@@ -1,7 +1,6 @@
 package io.github.cmmplb.activiti.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.cmmplb.activiti.beans.PageResult;
 import io.github.cmmplb.activiti.beans.QueryPageBean;
 import io.github.cmmplb.activiti.domain.dto.ModelDTO;
@@ -27,4 +26,8 @@ public interface ModelService {
     void export(String id);
 
     boolean deployment(String id);
+
+    void saveJsonXml(JSONObject bpmnXml, String id, String name, String description, String author, int revision);
+
+    void saveSvg(String id, String svgXml);
 }

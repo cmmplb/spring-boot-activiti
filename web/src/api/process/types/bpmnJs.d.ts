@@ -2,10 +2,10 @@
 declare interface BpmnJsVO {
   id: string;
   name: string;
-  xml: string;
+  xml: object;
 }
 
 declare interface BpmnJsDTO {
-  xml: string;
+  xml: object;
   svg: string;
 }

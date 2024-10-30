@@ -6,24 +6,16 @@ import io.github.cmmplb.activiti.convert.ModelerConvert;
 import io.github.cmmplb.activiti.domain.dto.ModelerDTO;
 import io.github.cmmplb.activiti.domain.vo.ModelerVO;
 import io.github.cmmplb.activiti.handler.exection.BusinessException;
+import io.github.cmmplb.activiti.service.ModelService;
 import io.github.cmmplb.activiti.service.ModelerService;
 import io.github.cmmplb.activiti.utils.ConverterUtil;
-import org.activiti.editor.constants.EditorJsonConstants;
 import org.activiti.editor.constants.ModelDataJsonConstants;
-import org.activiti.editor.constants.StencilConstants;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Model;
-import org.apache.batik.transcoder.TranscoderException;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.bouncycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -34,6 +26,9 @@ import java.nio.charset.StandardCharsets;
 
 @Service
 public class ModelerServiceImpl implements ModelerService {
+
+    @Autowired
+    private ModelService modelService;
 
     @Autowired
     private RepositoryService repositoryService;
@@ -68,35 +63,10 @@ public class ModelerServiceImpl implements ModelerService {
         repositoryService.saveModel(model);
 
         // 更新流程设计文件
-        JSONObject bpmnXml = JSON.parseObject(dto.getJsonXml());
-        // 修改流程文件中的版本号 ( 这里看需求, 是以模型的版本号还是取流程设计的版本号 )
-        JSONObject properties = bpmnXml.getJSONObject(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES);
-        // 名称
-        properties.put(StencilConstants.PROPERTY_NAME, dto.getName());
-        // 描述
-        properties.put(StencilConstants.PROPERTY_DOCUMENTATION, dto.getDescription());
-        // 我这里是把模型的版本号作为流程设计版本号, 所以修改流程设计中的流程版本会不生效
-        properties.put(StencilConstants.PROPERTY_PROCESS_VERSION, String.valueOf(revision));
-        bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES, properties);
-        repositoryService.addModelEditorSource(model.getId(), bpmnXml.toJSONString().getBytes(StandardCharsets.UTF_8));
+        modelService.saveJsonXml(JSON.parseObject(dto.getJsonXml()), dto.getId(), dto.getName(), dto.getDescription(), null, revision);
 
-        // 将 svg 图片转换为 png 保存
-        InputStream svgStream = new ByteArrayInputStream(dto.getSvgXml().getBytes(StandardCharsets.UTF_8));
-        TranscoderInput input = new TranscoderInput(svgStream);
-        // png 图片生成器
-        PNGTranscoder transcoder = new PNGTranscoder();
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        TranscoderOutput output = new TranscoderOutput(outStream);
-
-        try {
-            transcoder.transcode(input, output);
-            final byte[] result = outStream.toByteArray();
-            // 更新流程设计图片
-            repositoryService.addModelEditorSourceExtra(model.getId(), result);
-            outStream.close();
-        } catch (TranscoderException | IOException e) {
-            throw new BusinessException("更新流程设计图片异常");
-        }
+        // 更新流程图片信息
+        modelService.saveSvg(dto.getId(), dto.getSvgXml());
         return true;
     }
 
@@ -107,10 +77,13 @@ public class ModelerServiceImpl implements ModelerService {
             throw new BusinessException("模型信息不存在");
         }
         ModelerVO vo = ConverterUtil.convert(ModelerConvert.class, model);
-        // 获取流程定义文件
-        String modelInfo = new String(repositoryService.getModelEditorSource(model.getId()), StandardCharsets.UTF_8);
         vo.setModelId(model.getId());
-        vo.setModel(JSON.parseObject(modelInfo));
+        // 获取流程定义文件
+        byte[] modelData = repositoryService.getModelEditorSource(id);
+        if (!Arrays.isNullOrEmpty(modelData)) {
+            String modelInfo = new String(modelData, StandardCharsets.UTF_8);
+            vo.setModel(JSON.parseObject(modelInfo));
+        }
         return vo;
     }
 }
