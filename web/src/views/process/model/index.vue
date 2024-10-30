@@ -45,17 +45,19 @@
         :paginationData="paginationData"
       >
         <template #buttons>
-          <el-table-column fixed="right" align="center" label="操作" min-width="120" width="250">
+          <el-table-column fixed="right" align="center" label="操作" min-width="120" width="240">
             <template #default="scope">
               <el-button
+                v-if="scope.row.designType === 1"
                 icon="Document"
                 @click="handlerDesign(scope.row)"
                 text
                 style="color: #ff9100"
-              >设计
+              >设计(activiti-modeler)
               </el-button
               >
               <el-button
+                v-if="scope.row.designType === 2"
                 icon="Document"
                 @click="handlerDesignBpmnJs(scope.row)"
                 text
@@ -121,6 +123,23 @@ const columns = reactive<Column[]>([
   {
     prop: 'category',
     label: '模型类型',
+    width: 240
+  },
+  {
+    prop: 'designType',
+    label: '设计类型',
+    option: [
+      {
+        value: 1,
+        label: 'activiti-modeler',
+        tagType: 'success'
+      },
+      {
+        value: 2,
+        label: 'bpmn-js',
+        tagType: 'warning'
+      },
+    ],
     width: 240
   },
   {
@@ -248,6 +267,4 @@ const closeModel = () => {
   }
 
 }
-
-
 </style>

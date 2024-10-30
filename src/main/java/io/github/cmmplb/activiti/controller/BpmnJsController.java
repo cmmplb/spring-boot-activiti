@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * @date 2023-12-13 16:14:55
  * @since jdk 1.8
  */
-@Api(tags = "处理BpmnJs")
+@Api(tags = "bpmn-js 流程设计管理")
 @Slf4j
 @RestController
 @RequestMapping("/bpmn-js")

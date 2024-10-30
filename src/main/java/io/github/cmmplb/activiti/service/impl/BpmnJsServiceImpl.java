@@ -1,31 +1,19 @@
 package io.github.cmmplb.activiti.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.alibaba.fastjson.JSONObject;
 import io.github.cmmplb.activiti.domain.dto.BpmnJsDTO;
 import io.github.cmmplb.activiti.domain.vo.BpmnJsVO;
 import io.github.cmmplb.activiti.handler.exection.BusinessException;
 import io.github.cmmplb.activiti.service.BpmnJsService;
-import org.activiti.bpmn.converter.BpmnXMLConverter;
-import org.activiti.bpmn.model.BpmnModel;
-import org.activiti.editor.language.json.converter.BpmnJsonConverter;
+import io.github.cmmplb.activiti.service.ModelService;
+import org.activiti.editor.constants.ModelDataJsonConstants;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Model;
-import org.apache.batik.transcoder.TranscoderException;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.bouncycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -38,47 +26,32 @@ import java.nio.charset.StandardCharsets;
 public class BpmnJsServiceImpl implements BpmnJsService {
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ModelService modelService;
 
     @Autowired
     private RepositoryService repositoryService;
 
     @Override
     public boolean saveDesign(BpmnJsDTO dto) {
-        // bpmn-js 的参数是 xml
-        ByteArrayInputStream in = new ByteArrayInputStream(dto.getXml().getBytes(StandardCharsets.UTF_8));
-        // 创建XMLStreamReader读取XML资源
-        XMLInputFactory factory = XMLInputFactory.newInstance();
-        XMLStreamReader reader = null;
-        try {
-            reader = factory.createXMLStreamReader(in);
-        } catch (XMLStreamException e) {
-            throw new BusinessException("转换流程设计文件异常");
+        Model model = repositoryService.getModel(dto.getId());
+        if (null == model) {
+            throw new RuntimeException("模型信息不存在");
         }
-        // 把 Xml 转换成 BpmnModel 对象
-        BpmnModel bpmnModel = new BpmnXMLConverter().convertToBpmnModel(reader);
+        // 版本号, 这里直接在代码里加 1 了, 应该在数据库利用行锁 version = version + 1 的方式来修改, 或者加锁, 防止数据重复更新
+        int revision = model.getVersion() + 1;
+        JSONObject metaInfo = JSON.parseObject(model.getMetaInfo());
+        // 版本号从模型信息中获取, 因为设计页面上的版本号是字符串, 而模型信息的版本号是 int, 防止转换异常
+        metaInfo.put(ModelDataJsonConstants.MODEL_REVISION, revision);
+        model.setMetaInfo(metaInfo.toString());
+        model.setVersion(revision);
+        // 更新模型信息
+        repositoryService.saveModel(model);
 
-        // 把 BpmnModel 对象转换成 json 字节数组, 保存模型文件
-        repositoryService.addModelEditorSource(dto.getId(), JSON.toJSONBytes(bpmnModel));
+        // 更新流程设计文件, 注意, activiti-modeler 保存的是 json, bpmn-js 保存的是 xml
+        repositoryService.addModelEditorSource(dto.getId(), dto.getXml().getBytes(StandardCharsets.UTF_8));
 
-        // 将 svg 图片转换为 png 保存
-        InputStream svgStream = new ByteArrayInputStream(dto.getSvg().getBytes(StandardCharsets.UTF_8));
-        TranscoderInput input = new TranscoderInput(svgStream);
-        // png 图片生成器
-        PNGTranscoder transcoder = new PNGTranscoder();
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        TranscoderOutput output = new TranscoderOutput(outStream);
-
-        try {
-            transcoder.transcode(input, output);
-            final byte[] result = outStream.toByteArray();
-            // 更新流程设计图片
-            repositoryService.addModelEditorSourceExtra(dto.getId(), result);
-            outStream.close();
-        } catch (TranscoderException | IOException e) {
-            throw new BusinessException("更新流程设计图片异常");
-        }
-
+        // 更新流程图片信息
+        modelService.saveSvg(dto.getId(), dto.getSvg());
         return true;
     }
 
@@ -89,20 +62,11 @@ public class BpmnJsServiceImpl implements BpmnJsService {
             throw new BusinessException("模型信息不存在");
         }
         byte[] modelData = repositoryService.getModelEditorSource(id);
-        JsonNode jsonNode = null;
-        try {
-            jsonNode = objectMapper.readTree(modelData);
-        } catch (IOException e) {
-            throw new BusinessException("解析流程设计文件异常");
-        }
-        // 把资源转换为xml
-        BpmnModel bpmnModel = (new BpmnJsonConverter()).convertToBpmnModel(jsonNode);
-        byte[] xmlBytes = (new BpmnXMLConverter()).convertToXML(bpmnModel, StandardCharsets.UTF_8.name());
-
         BpmnJsVO vo = new BpmnJsVO();
         vo.setModelId(model.getId());
-        vo.setName(model.getName());
-        vo.setXml(new String(xmlBytes, StandardCharsets.UTF_8));
+        if (!Arrays.isNullOrEmpty(modelData)) {
+            vo.setXml(new String(modelData, StandardCharsets.UTF_8));
+        }
         return vo;
     }
 }

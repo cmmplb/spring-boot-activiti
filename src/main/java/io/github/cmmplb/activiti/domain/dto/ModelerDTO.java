@@ -24,10 +24,10 @@ public class ModelerDTO {
     @ApiModelProperty(value = "模型描述", example = "请假申请流程")
     private String description;
 
-    @ApiModelProperty(value = "流程设计文件xml")
+    @ApiModelProperty(value = "流程设计文件 xml")
     private String jsonXml;
 
-    @ApiModelProperty(value = "流程设计图片svg")
+    @ApiModelProperty(value = "流程设计图片 svg")
     private String svgXml;
 
 }
