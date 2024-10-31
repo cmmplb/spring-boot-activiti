@@ -140,17 +140,18 @@ const columns = reactive<Column[]>([
         tagType: 'warning'
       },
     ],
-    width: 240
+    width: 140
   },
   {
     prop: 'version',
     label: '版本',
-    width: 180
+    width: 100
   },
   {
     prop: 'description',
     label: '模型描述',
-    width: 180
+    width: 180,
+    showOverflowTooltip:true
   },
   {
     prop: 'createTime',
@@ -160,7 +161,6 @@ const columns = reactive<Column[]>([
     prop: 'lastUpdateTime',
     label: '最后更新时间'
   }
-
 ]);
 // 表格数据集
 const data = ref([]);
