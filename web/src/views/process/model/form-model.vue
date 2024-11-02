@@ -20,8 +20,9 @@
         </el-form-item>
         <el-form-item label="模型设计类型" prop="designType">
           <el-radio-group v-model="form.designType">
-            <el-radio :key="1" :label="1">activiti-modeler</el-radio>
-            <el-radio :key="2" :label="2">bpmn-js</el-radio>
+            <!-- 未来版本将移除 :label 改为 :value -->
+            <el-radio :key="1" :value="1">activiti-modeler</el-radio>
+            <el-radio :key="2" :value="2">bpmn-js</el-radio>
           </el-radio-group>
         </el-form-item>
         <!-- 只有 activiti-modeler 才需要填写作者，bpmn-js 没有 properties 属性 -->

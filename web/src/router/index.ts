@@ -36,6 +36,11 @@ const constantRoutes = [
         path: '/process/model',
         component: () => import ('@/views/process/model/index.vue'),
         name: '模型管理'
+      },
+      {
+        path: '/process/deployment',
+        component: () => import ('@/views/process/deployment/index.vue'),
+        name: '部署管理'
       }
     ]
   }

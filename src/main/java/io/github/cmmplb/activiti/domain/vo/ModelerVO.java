@@ -2,6 +2,7 @@ package io.github.cmmplb.activiti.domain.vo;
 
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.github.cmmplb.activiti.utils.SecurityUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -66,7 +67,6 @@ public class ModelerVO {
     }
 
     public String getCreatedByUser() {
-        // 后续整合 SpringSecurity
-        return "管理员";
+        return SecurityUtil.getUserName();
     }
 }

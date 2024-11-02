@@ -329,7 +329,7 @@ CREATE TABLE `act_re_procdef`
     `SUSPENSION_STATE_`       int(11)       DEFAULT NULL COMMENT '是否挂起: 1-激活; 2-挂起; ',
     `TENANT_ID_`              varchar(255)  DEFAULT '' COMMENT '租户 ID',
     `ENGINE_VERSION_`         varchar(255)  DEFAULT NULL COMMENT '流程引擎版本号',
-    `APP_VERSION_`            int(11)       DEFAULT NULL COMMENT '自定义应用版本号',
+    `APP_VERSION_`            int(11)       DEFAULT NULL COMMENT '自定义应用版本号, 对应 ACT_RE_DEPLOYMENT 表 PROJECT_RELEASE_VERSION_ 字段',
     PRIMARY KEY (`ID_`),
     UNIQUE KEY `ACT_UNIQ_PROCDEF` (`KEY_`, `VERSION_`, `TENANT_ID_`)
 ) ENGINE = InnoDB

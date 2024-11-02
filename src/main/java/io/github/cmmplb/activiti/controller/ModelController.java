@@ -68,7 +68,7 @@ public class ModelController {
         return ResultUtil.success(modelService.getInfoById(id));
     }
 
-    @ApiOperation("导出流程模型文件")
+    @ApiOperation("导出流程模型文件和图片")
     @GetMapping("/export/{id}")
     @ApiOperationSupport(order = 6, ignoreParameters = {"id"})
     public void export(@PathVariable(value = "id") String id) {

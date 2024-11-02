@@ -67,6 +67,22 @@
               >
               <el-button
                 icon="Edit"
+                @click="handlerDeployment(scope.row)"
+                text
+                style="color: rgb(87,163,26)"
+              >部署
+              </el-button
+              >
+              <el-button
+                icon="Edit"
+                @click="handlerExport(scope.row)"
+                text
+                style="color: rgb(221,0,255)"
+              >导出
+              </el-button
+              >
+              <el-button
+                icon="Edit"
                 @click="handlerEdit(scope.row)"
                 text
                 style="color: #409eff"
@@ -99,12 +115,14 @@
 </template>
 
 <script setup lang="ts">
-import {getByPaged, removeById} from '@/api/process/model';
+import {deployment, exportModel, getByPaged, removeById} from '@/api/process/model';
 import Table from '@/components/table/index.vue';
 import {onMounted, reactive, ref} from 'vue';
 import {ElMessage, ElMessageBox} from 'element-plus';
 import {QueryPageBean} from '@/utils/http/axios/axios';
 import FormModel from '@/views/process/model/form-model.vue';
+import {AxiosResponse} from 'axios';
+import {downFile} from '@/utils';
 
 // reactive 一般定义响应式数据, 例如数组、对象等, ref 一般定义基础类型数据, 例如字符串、数字等
 
@@ -138,7 +156,7 @@ const columns = reactive<Column[]>([
         value: 2,
         label: 'bpmn-js',
         tagType: 'warning'
-      },
+      }
     ],
     width: 140
   },
@@ -151,7 +169,7 @@ const columns = reactive<Column[]>([
     prop: 'description',
     label: '模型描述',
     width: 180,
-    showOverflowTooltip:true
+    showOverflowTooltip: true
   },
   {
     prop: 'createTime',
@@ -228,6 +246,33 @@ const handlerDesignBpmnJs = (row: ModelVO) => {
   window.open('/bpmn-js?modelId=' + row.id, '_blank');
 };
 
+// 点击部署按钮
+const handlerDeployment = (row: ModelVO) => {
+  ElMessageBox.confirm('是否确认部署名称为"' + row.name + '"的模型？', '部署', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'success'
+    }
+  ).then(async () => {
+    const res = await deployment(row.id);
+    if (res.code === 200 && res.data) {
+      await getData();
+      ElMessage({type: 'success', message: '部署成功'});
+    } else {
+      ElMessage({type: 'error', message: res.msg});
+    }
+  }).catch(() => {
+    // 取消部署
+  });
+};
+
+// 点击导出按钮
+const handlerExport = (row: ModelVO) => {
+  exportModel(row.id).then((response: AxiosResponse) => {
+    downFile(response, row.key + '.bpmn20.xml');
+  });
+};
+
 // 点击编辑按钮
 const handlerEdit = (row: ModelVO) => {
   visible.value = true;
@@ -243,11 +288,14 @@ const handlerDelete = (row: ModelVO) => {
       cancelButtonText: '取消',
       type: 'warning'
     }
-  ).then(() => {
-    return removeById(row.id);
-  }).then(() => {
-    getData();
-    ElMessage({type: 'success', message: '删除成功'});
+  ).then(async () => {
+    const res = await removeById(row.id);
+    if (res.code === 200 && res.data) {
+      await getData();
+      ElMessage({type: 'success', message: '删除成功'});
+    } else {
+      ElMessage({type: 'error', message: res.msg});
+    }
   }).catch(() => {
     // 取消删除
   });

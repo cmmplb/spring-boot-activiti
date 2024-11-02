@@ -24,6 +24,13 @@ export const menuList = reactive<Array<Menu>>([
         'icon': 'Suitcase',
         'path': '/process/model',
         'parentId': 2
+      },
+      {
+        'id': 4,
+        'name': '部署管理',
+        'icon': 'VideoPlay',
+        'path': '/process/deployment',
+        'parentId': 2
       }
     ]
   }
