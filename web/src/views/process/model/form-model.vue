@@ -18,18 +18,19 @@
         <el-form-item label="模型类型" prop="category">
           <el-input v-model="form.category" placeholder="请输入模型类型"></el-input>
         </el-form-item>
-        <el-form-item label="模型设计类型" prop="type">
+        <el-form-item label="模型设计类型" prop="designType">
           <el-radio-group v-model="form.designType">
-            <el-radio :key="1" :label="1">activiti-modeler</el-radio>
-            <el-radio :key="2" :label="2">bpmn-js</el-radio>
+            <!-- 未来版本将移除 :label 改为 :value -->
+            <el-radio :key="1" :value="1">activiti-modeler</el-radio>
+            <el-radio :key="2" :value="2">bpmn-js</el-radio>
           </el-radio-group>
-        </el-form-item>
-        <el-form-item label="模型描述" prop="description">
-          <el-input v-model="form.description" placeholder="请输入模型描述"></el-input>
         </el-form-item>
         <!-- 只有 activiti-modeler 才需要填写作者，bpmn-js 没有 properties 属性 -->
         <el-form-item v-if="form.designType === 1" label="模型作者" prop="author">
           <el-input v-model="form.author" placeholder="请输入模型作者"></el-input>
+        </el-form-item>
+        <el-form-item label="模型描述" prop="description">
+          <el-input v-model="form.description" type="textarea" placeholder="请输入模型描述"></el-input>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -67,10 +68,22 @@ const form = reactive<ModelDTO>({
 // 表单校验规则
 const rules = reactive<FormRules<ModelDTO>>({
   key: [
-    {required: true, message: '请输入模型关键字', trigger: 'blur'}
+    {required: true, message: '请输入模型关键字', trigger: 'blur'},
+    {min: 1, max: 255, message: '模型关键字长度限制 255', trigger: 'blur'}
   ],
   name: [
-    {required: true, message: '请输入模型名称', trigger: 'blur'}
+    {required: true, message: '请输入模型名称', trigger: 'blur'},
+    {min: 1, max: 255, message: '模型名称长度限制 255', trigger: 'blur'}
+  ],
+  category: [
+    {min: 1, max: 255, message: '模型类型长度限制 255', trigger: 'blur'}
+  ],
+  author: [
+    {min: 1, max: 255, message: '模型作者长度限制 64', trigger: 'blur'}
+  ],
+  // META_INFO_ 长度 4000
+  description: [
+    {min: 1, max: 3000, message: '模型类型长度限制 3000', trigger: 'blur'}
   ]
 });
 // Vue 3 写法, 获取 ref 定义的组件实例

@@ -35,7 +35,7 @@
 
 - 仓库地址：https://gitee.com/cmmplb/spring-boot-activiti
 
-- doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现步骤
+- doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现步骤，尽量把所有功能以及表字段都使用上，防止以后再回头看花费时间，多写了些注释。
 
 - doc/db/v7.1.0.M6.sql 脚本是 activiti 初始化时自动生成的相关表，这里加上了各个表的字段注释，可以执行一遍脚本刷一下表注释（初始化生成的表名是大写的，脚本里面的是小写的）。
 
@@ -60,7 +60,13 @@ spring-boot-activiti
 ````
 feature
 ├── 1.x         模块搭建
+├──────           后端模块    
+├──────           前端模块    
 ├── 2.x         基础
+├──────           流程模型    
+├──────           部署流程   
+├──────           启动流程  
+├──────           处理任务
 ├── 3.1         项目起步
 ├── 3.2         模型管理
 ├── 3.3         前端布局
@@ -68,8 +74,10 @@ feature
 ├── 3.5         整合activiti-modeler+bpmn-js
 ````
 
-TODO：
+**feature/latest version todo**：
 
+- vue3 整合 activiti-modeler ✅
+- vue3 整合 bpmn-js ✅
 - 首页数据统计 ❌
 - 流程管理
     - 模型管理 ✅
@@ -80,8 +88,23 @@ TODO：
 - 办理事项
     - 代办任务 ❌
     - 已办任务 ❌
-- Spring Security 新版配置 ❌
+- Spring Security 5.7+ 权限配置 ❌
 - 用户、用户组、租户 ❌
+
+**tag/2.5.3**：
+
+- vue2 整合 activiti-modeler ✅
+- vue2 整合 bpmn-js ✅
+- 首页数据统计 ✅
+- 流程管理
+    - 模型管理 ✅
+    - 部署管理 ✅
+- 事项申请
+    - 发起申请 ✅
+    - 申请历史 ✅
+- 办理事项
+    - 代办任务 ✅
+    - 已办任务 ✅
 
 ### 文档目录
 

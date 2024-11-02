@@ -28,6 +28,7 @@ public class BpmnJsServiceImpl implements BpmnJsService {
     @Autowired
     private ModelService modelService;
 
+    // 管理和控制流程定义的服务接口，包括部署、查询和删除流程定义等。
     @Autowired
     private RepositoryService repositoryService;
 
@@ -35,7 +36,7 @@ public class BpmnJsServiceImpl implements BpmnJsService {
     public boolean saveDesign(BpmnJsDTO dto) {
         Model model = repositoryService.getModel(dto.getId());
         if (null == model) {
-            throw new RuntimeException("模型信息不存在");
+            throw new BusinessException("模型信息不存在");
         }
         // 版本号, 这里直接在代码里加 1 了, 应该在数据库利用行锁 version = version + 1 的方式来修改, 或者加锁, 防止数据重复更新
         int revision = model.getVersion() + 1;

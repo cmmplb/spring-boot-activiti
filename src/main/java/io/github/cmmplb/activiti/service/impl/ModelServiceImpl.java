@@ -6,13 +6,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.cmmplb.activiti.beans.PageResult;
 import io.github.cmmplb.activiti.beans.QueryPageBean;
+import io.github.cmmplb.activiti.configuration.properties.ActivitiProperties;
 import io.github.cmmplb.activiti.convert.ModelConvert;
 import io.github.cmmplb.activiti.domain.dto.ModelDTO;
 import io.github.cmmplb.activiti.domain.vo.ModelVO;
 import io.github.cmmplb.activiti.handler.exection.BusinessException;
+import io.github.cmmplb.activiti.service.DeploymentService;
 import io.github.cmmplb.activiti.service.ModelService;
 import io.github.cmmplb.activiti.utils.ConverterUtil;
+import io.github.cmmplb.activiti.utils.FileUtil;
 import io.github.cmmplb.activiti.utils.ServletUtil;
+import io.github.cmmplb.activiti.utils.XmlUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.editor.constants.EditorJsonConstants;
@@ -25,11 +30,9 @@ import org.activiti.engine.repository.DeploymentBuilder;
 import org.activiti.engine.repository.Model;
 import org.activiti.engine.repository.ModelQuery;
 import org.apache.batik.transcoder.TranscoderException;
-import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
-import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.exceptions.PersistenceException;
 import org.bouncycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,15 +40,16 @@ import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author penglibo
@@ -53,14 +57,22 @@ import java.util.stream.Collectors;
  * @since jdk 1.8
  */
 
+@Slf4j
 @Service
 public class ModelServiceImpl implements ModelService {
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    // 管理和控制流程定义的服务接口，包括部署、查询和删除流程定义等。
     @Autowired
     private RepositoryService repositoryService;
+
+    @Autowired
+    private DeploymentService deploymentService;
+
+    @Autowired
+    private ActivitiProperties activitiProperties;
 
     @Override
     public boolean save(ModelDTO dto) {
@@ -124,13 +136,13 @@ public class ModelServiceImpl implements ModelService {
     public boolean update(ModelDTO dto) {
         Model model = repositoryService.getModel(dto.getId());
         if (null == model) {
-            throw new RuntimeException("模型信息不存在");
+            throw new BusinessException("模型信息不存在");
         }
         // 校验模型关键字是否重复
         ModelQuery modelQuery = repositoryService.createModelQuery();
         List<Model> list = modelQuery.modelKey(dto.getKey()).list();
         if (!CollectionUtils.isEmpty(list) && !list.get(0).getId().equals(dto.getId())) {
-            throw new RuntimeException("模型标识不能重复");
+            throw new BusinessException("模型标识不能重复");
         }
         // 模型名称
         model.setName(dto.getName());
@@ -163,7 +175,7 @@ public class ModelServiceImpl implements ModelService {
     public boolean removeById(String id) {
         Model model = repositoryService.getModel(id);
         if (null == model) {
-            throw new RuntimeException("模型信息不存在");
+            throw new BusinessException("模型信息不存在");
         }
         // 删除模型会同时删除关联的流程定义文件, 也就是 act_ge_bytearray 表中一条关联的数据
         repositoryService.deleteModel(id);
@@ -171,18 +183,18 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
-    public PageResult<ModelVO> getByPaged(QueryPageBean dto) {
+    public PageResult<ModelVO> getByPaged(QueryPageBean queryPageBean) {
         ModelQuery query = repositoryService.createModelQuery();
-        if (StringUtils.isNotEmpty(dto.getKeywords())) {
+        if (StringUtils.isNotEmpty(queryPageBean.getKeywords())) {
             // 根据模型名称模糊查询
-            query.modelNameLike(dto.getKeywords());
+            query.modelNameLike(queryPageBean.getKeywords());
         }
         List<ModelVO> res = new ArrayList<>();
         // count 查询总数
         long total = query.count();
         if (total > 0) {
-            // 分页查询
-            List<Model> list = query.orderByCreateTime().desc().listPage(dto.getStart(), dto.getSize());
+            // 根据创建时间倒序, 分页查询
+            List<Model> list = query.orderByCreateTime().desc().listPage(queryPageBean.getStart(), queryPageBean.getSize());
             // .stream().map() jdk 8 语法
             return new PageResult<>(total, list.stream().map(model -> ConverterUtil.convert(ModelConvert.class, model)
             ).collect(Collectors.toList()));
@@ -194,7 +206,7 @@ public class ModelServiceImpl implements ModelService {
     public ModelVO getInfoById(String id) {
         Model model = repositoryService.getModel(id);
         if (null == model) {
-            throw new RuntimeException("模型信息不存在");
+            throw new BusinessException("模型信息不存在");
         }
         ModelVO vo = ConverterUtil.convert(ModelConvert.class, model);
         // 获取流程定义文件
@@ -222,35 +234,57 @@ public class ModelServiceImpl implements ModelService {
         // 获取流程定义文件
         byte[] modelData = repositoryService.getModelEditorSource(id);
         if (Arrays.isNullOrEmpty(modelData)) {
-            throw new RuntimeException("流程模型文件不存在");
+            throw new BusinessException("流程模型文件不存在");
         }
         JSONObject metaInfo = JSON.parseObject(model.getMetaInfo());
         byte[] xmlBytes;
         // activiti modeler 存储的是 jsonXml, bpmn-js 存储的是 xml
         if (metaInfo.getInteger(ModelDTO.DESIGN_TYPE).equals(1)) {
-            JsonNode jsonNode = null;
+            JsonNode jsonNode;
             try {
                 jsonNode = objectMapper.readTree(modelData);
             } catch (IOException e) {
-                throw new RuntimeException("解析流程模型文件失败");
+                throw new BusinessException("解析流程模型文件失败");
             }
             // 使用 activiti-json-converter 依赖中的转换器将 json 转换成 BpmnModel
             BpmnModel bpmnModel = (new BpmnJsonConverter()).convertToBpmnModel(jsonNode);
             // 之后将 BpmnModel 转换成 xml
             xmlBytes = (new BpmnXMLConverter()).convertToXML(bpmnModel, StandardCharsets.UTF_8.name());
         } else {
-            xmlBytes = modelData;
+            try {
+                xmlBytes = XmlUtil.formatXml(new String(modelData, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                log.error("格式化 xml 失败:{}", e.getMessage());
+                // 格式化失败的话返回原始数据
+                xmlBytes = modelData;
+            }
         }
+        HttpServletResponse response = ServletUtil.getResponse();
         try {
-            ByteArrayInputStream in = new ByteArrayInputStream(xmlBytes);
-            HttpServletResponse response = ServletUtil.getResponse();
-            IOUtils.copy(in, response.getOutputStream());
-            String filename = model.getKey() + ".bpmn20.xml";
-            response.setHeader("Content-Disposition", "attachment;filename=" + filename);
-            response.setHeader("content-Type", "application/xml");
-            response.flushBuffer();
+            // 导出模型时是否导出流程图片, 为 true 时流程文件和流程图片压缩成 zip 导出
+            if (activitiProperties.getModel().isExportEditorSourceExtra()) {
+                // 获取流程图片, activiti modeler 和 bpmn-js 图片都是将 svg 转为 png 存储
+                byte[] pngData = repositoryService.getModelEditorSourceExtra(id);
+                // 用于部署上传流程文件测试 ACT_RE_PROCDEF 表 DGRM_RESOURCE_NAME_ 字段
+                String filename = model.getName() + ".zip";
+                response.setContentType("application/octet-stream");
+                response.setHeader("Content-Disposition", "attachment;filename=" + new String(URLEncoder.encode(filename, StandardCharsets.UTF_8.name()).getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+                ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream(), StandardCharsets.UTF_8);
+                // 压缩流程文件, 通过流程文件需要满足这个后缀条件: "bpmn20.xml", "bpmn"
+                FileUtil.toZip(zipOutputStream, model.getName() + ".bpmn20.xml", new ByteArrayInputStream(xmlBytes));
+                // 压缩流程 svg 图片, 图片需要满足: "png", "jpg", "gif", "svg"
+                FileUtil.toZip(zipOutputStream, model.getName() + ".png", new ByteArrayInputStream(pngData));
+            } else {
+                ByteArrayInputStream in = new ByteArrayInputStream(xmlBytes);
+                String filename = model.getName() + ".bpmn20.xml";
+                response.setContentType("application/xml");
+                response.setHeader("Content-Disposition", "attachment;filename=" + new String(URLEncoder.encode(filename, StandardCharsets.UTF_8.name()).getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
+                IOUtils.copy(in, response.getOutputStream());
+                // 可以实时将部分结果发送给客户端, 而不是等待整个操作完成后再发送‌
+                response.flushBuffer();
+            }
         } catch (IOException e) {
-            throw new RuntimeException("导出流程模型文件失败");
+            throw new BusinessException("导出流程模型文件失败");
         }
     }
 
@@ -261,35 +295,82 @@ public class ModelServiceImpl implements ModelService {
             throw new BusinessException("模型信息不存在");
         }
         // 构建部署对象
-        DeploymentBuilder deploymentBuilder = repositoryService.createDeployment()
-                .name(model.getName()).category(model.getCategory()).key(model.getKey());
+        DeploymentBuilder deploymentBuilder = repositoryService.createDeployment();
 
         // 获取流程定义文件
         byte[] modelData = repositoryService.getModelEditorSource(id);
         JSONObject metaInfo = JSON.parseObject(model.getMetaInfo());
+        String resourceName = model.getKey() + ".bpmn20.xml";
+        // 设计类型:1-activiti modeler;2-bpmn-js;
         if (metaInfo.getInteger(ModelDTO.DESIGN_TYPE).equals(1)) {
-            JsonNode jsonNode = null;
+            JsonNode jsonNode;
             try {
                 jsonNode = objectMapper.readTree(modelData);
             } catch (IOException e) {
-                throw new RuntimeException("解析流程模型文件失败");
+                throw new BusinessException("解析流程模型文件失败");
             }
             // 基于 BpmnModel 部署模型
             BpmnModel bpmnModel = (new BpmnJsonConverter()).convertToBpmnModel(jsonNode);
             // 前面基础是基于 .addClasspathResource("processes/test.bpmn20.xml") 来部署的
-            deploymentBuilder.addBpmnModel(model.getKey() + ".bpmn20.xml", bpmnModel);
+            deploymentBuilder.addBpmnModel(resourceName, bpmnModel);
         } else {
             // 基于 xml 部署模型
-            deploymentBuilder.addBytes(model.getKey() + ".bpmn20.xml", modelData);
+            deploymentBuilder.addBytes(resourceName, modelData);
         }
-        // 看源码发现, 如果存在多个部署名称相同的部署信息, 则会取第一个更新版本号
-        Deployment deploy = null;
+        // 获取流程设计图片
+        byte[] modelEditorSourceExtra = repositoryService.getModelEditorSourceExtra(id);
+        if (!Arrays.isNullOrEmpty(modelEditorSourceExtra)) {
+            // 对应数据库 ACT_RE_PROCDEF 表 DGRM_RESOURCE_NAME_ 字段
+            deploymentBuilder.addInputStream(model.getKey() + ".png", new ByteArrayInputStream(modelEditorSourceExtra));
+        }
+        if (activitiProperties.getDeployment().isProjectManifestEnabled()) {
+            // =================设置资源清单=================
+            // 为了测试表中字段, 使用项目资源清单对应 PROJECT_RELEASE_VERSION_, 这个项目版本会保存在 ACT_RE_DEPLOYMENT 表的 PROJECT_RELEASE_VERSION_ 字段中, 同时更新 ACT_RE_PROCDEF 表的 APP_VERSION_ 字段
+            // projectManifest 的使用可以在 org.activiti.engine.impl.bpmn.deployer.BpmnDeployer.setProcessDefinitionVersionsAndIds() 看到
+            // - 如果设置资源清单, 则流程定义 (ProcessDefinitionEntity) 的版本号从 deployment 获取
+            // - 如果未设置, 则流程定义将取 (ProcessDefinitionEntity) 最新版本 + 1, 即: latest.getVersion() + 1
+            List<Deployment> list = repositoryService.createDeploymentQuery().deploymentName(model.getName()).orderByDeploymenTime().desc().list();
+            // **注意** 如果设置了项目资源清单版本, 则 isAutoDeploymentEnabled 的判断规则会失效, 判断逻辑改为对比数据库中项目资源清单版本号:
+            // - 版本号相同则数据过滤不做处理
+            // - 版本号不同则 ACT_RE_DEPLOYMENT 表新增一条记录, 版本号 +1, ACT_RE_PROCDEF 表会根据部署时的模型文件数量新增对应 n 条数据, 同时版本 +1
+            // org.activiti.engine.impl.cmd.DeployCmd.deploymentsDiffer():
+            // !deployment.getProjectReleaseVersion().equals(saved.getProjectReleaseVersion());
+
+            // 这里我们如果存在相同部署名称, 可以把版本号提取出来, 赋值给项目资源清单属性, 从列表中取第一个获取版本号
+            String version = CollectionUtils.isEmpty(list) ? "1" : String.valueOf((list.get(0).getVersion() + 1));
+            deploymentBuilder.setProjectManifest(deploymentService.buildProjectManifest(model.getName(), metaInfo.getString(ModelDataJsonConstants.MODEL_DESCRIPTION), version));
+        }
+        // 这里有个问题, 就是设置资源清单的话, deploymentBuilder 并没有设置 version 的方法, 第二次再部署的话, 会报错 act_re_procdef: UNIQUE KEY `ACT_UNIQ_PROCDEF` (`KEY_`,`VERSION_`,`TENANT_ID_`)
+        // 原因就是上面说的设置资源清单版本号, 流程定义从 deployment 获取, 而 deployment 版本不会更新, 就会导致添加流程定义数据唯一索引重复: UNIQUE KEY
+        // 所以这里我们使用 enableDuplicateFiltering(), 开启之后 deployment 会查询是否存在相同名称的部署信息:
+        // 是否过滤重复, 默认为 false, 防止资源没有发生变化而再次执行部署方法产生的重复部署
+        if (activitiProperties.getDeployment().isAutoDeploymentEnabled()) {
+            // - false: 每次部署 ACT_RE_DEPLOYMENT 都会新增一条部署信息, 版本号是 1, ACT_RE_PROCDEF 会根据部署时的模型文件数量新增对应 n 条数据
+            // - true: 部署时会判断部署名称和流程定义文件与数据库中是否相同:
+            // * -- 名称相同, 流程定义文件内容相同, 数据过滤不做处理
+            // * -- 名称相同, 流程定义文件内容不同, ACT_RE_DEPLOYMENT 表新增一条记录, 版本号 +1 , ACT_RE_PROCDEF 表不会新增数据
+            // * -- 名称不同, 流程定义文件内容相同, ACT_RE_DEPLOYMENT 表新增一条记录, 版本号是 1, ACT_RE_PROCDEF 会根据部署时的模型文件数量新增对应 n 条数据, 同时版本 +1
+            // * -- 名称不同, 流程定义文件内容不同, ACT_RE_DEPLOYMENT 表新增一条记录, 版本号是 1, ACT_RE_PROCDEF 会根据部署时的模型文件数量新增对应 n 条数据, 同时版本也是 1
+            deploymentBuilder.enableDuplicateFiltering();
+            // 这里有点绕，注释有点啰嗦
+        }
+        deploymentBuilder.name(model.getName()).category(model.getCategory()).key(model.getKey());
         try {
-            deploy = deploymentBuilder.deploy();
+            // 通过流程文件需要满足这个后缀条件: "bpmn20.xml", "bpmn"
+            // 图片需要满足: "png", "jpg", "gif", "svg"
+            // 对应源码 org.activiti.engine.impl.bpmn.deployer.ResourceNameUtil
+            Deployment deploy = deploymentBuilder.deploy();
+            model.setDeploymentId(deploy.getId());
+        } catch (PersistenceException p) {
+            // 由上面的 setProjectManifest 衍生问题: 通过模型部署后, 再来使用上传文件部署会报错 act_re_procdef: UNIQUE KEY `ACT_UNIQ_PROCDEF`, 反过来亦是如此
+            // 原因是上传模型部署使用的是流程文件节点 process id 赋值给 KEY_ 字段, 然后上面设置了 projectManifest, 流程定义 (ProcessDefinitionEntity) 的版本号从 deployment 获取
+            // 就出现 ACT_RE_PROCDEF 表 KEY_ 和 版本号相同的情况, 这里解决办法就是规定上传的文件名称和模型名称相同才行, 否则代表流程定义信息已存在
+            if (p.getCause() instanceof SQLIntegrityConstraintViolationException && p.getCause().getMessage().contains("Duplicate entry")) {
+                throw new BusinessException("流程定义信息已存在, 若要更新版本, 请将上传的部署文件名称和模型名称设为相同");
+            }
         } catch (Exception e) {
-            throw new RuntimeException("流程图不合规范，请重新设计");
+            throw new BusinessException("流程图不合规范，请重新设计");
         }
-        model.setDeploymentId(deploy.getId());
         // 更新模型信息部署 id 字段
         repositoryService.saveModel(model);
         return true;
@@ -311,8 +392,8 @@ public class ModelServiceImpl implements ModelService {
             // 新增和编辑模型页面修改作者
             properties.put(StencilConstants.PROPERTY_PROCESS_AUTHOR, author);
         }
-        // 流程唯一标识
-        properties.put(StencilConstants.PROPERTY_PROCESS_ID, id);
+        // 流程唯一标识, 必须是下划线或者字母开头, 否则报错: cvc-datatype-valid.1.2.1: '0ee903b8-9695-11ef-beca-d6edbbd75e0a' 不是 'NCName' 的有效值。
+        properties.put(StencilConstants.PROPERTY_PROCESS_ID, "_" + id);
         // 我这里是把模型的版本号作为流程设计版本号, 所以修改流程设计中的流程版本会不生效
         properties.put(StencilConstants.PROPERTY_PROCESS_VERSION, String.valueOf(revision));
         bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES, properties);
@@ -322,20 +403,9 @@ public class ModelServiceImpl implements ModelService {
 
     @Override
     public void saveSvg(String id, String svgXml) {
-        // 将 svg 图片转换为 png 保存
-        InputStream svgStream = new ByteArrayInputStream(svgXml.getBytes(StandardCharsets.UTF_8));
-        TranscoderInput input = new TranscoderInput(svgStream);
-        // png 图片生成器
-        PNGTranscoder transcoder = new PNGTranscoder();
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        TranscoderOutput output = new TranscoderOutput(outStream);
-
         try {
-            transcoder.transcode(input, output);
-            final byte[] result = outStream.toByteArray();
             // 更新流程设计图片
-            repositoryService.addModelEditorSourceExtra(id, result);
-            outStream.close();
+            repositoryService.addModelEditorSourceExtra(id, FileUtil.svg2Png(svgXml));
         } catch (TranscoderException | IOException e) {
             throw new BusinessException("更新流程设计图片异常");
         }

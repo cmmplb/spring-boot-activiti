@@ -166,9 +166,27 @@
             <artifactId>mapstruct-jdk8</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
+        <!-- 配置文件处理器=》配置文件提示工具，当你在 application.yml 或者 application.properties 中输入时，会有相应的提示，方便我们写配置文件。原理是会自动给 @ConfigurationProperties 注解的类生成一个元数据信息的 json 文件，开发工具比如 idea 会自动扫描识别这个 json 然后在你写配置文件的时候给予提示。 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
+        <!-- 插件管理 -->
+        <finalName>${project.artifactId}:${project.version}</finalName>
+        <directory>${project.basedir}/target</directory>
+
+        <!-- 默认情况下，Maven会从项目的src/main/resources目录下查找资源,让yml能引用maven变量@xxx@ -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 替换目录下${}解析的变量 -->
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
         <plugins>
             <!-- maven-compiler-plugin 编译 Java 文件时使用什么版本的 jre -->
             <plugin>
@@ -215,6 +233,11 @@
                                 <artifactId>lombok-mapstruct-binding</artifactId>
                                 <!-- 如果是0.1.0可能出现实现类只创建对象，没有set赋值 -->
                                 <version>${lombok-mapstruct-binding.version}</version>
+                            </path>
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                                <version>${spring-boot-dependencies.version}</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>

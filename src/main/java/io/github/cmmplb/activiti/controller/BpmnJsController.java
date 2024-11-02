@@ -1,6 +1,7 @@
 package io.github.cmmplb.activiti.controller;
 
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.github.xiaoymin.knife4j.annotations.ApiSupport;
 import io.github.cmmplb.activiti.domain.dto.BpmnJsDTO;
 import io.github.cmmplb.activiti.domain.vo.BpmnJsVO;
 import io.github.cmmplb.activiti.result.Result;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = "bpmn-js 流程设计管理")
 @Slf4j
 @RestController
+@ApiSupport(order = 3)
 @RequestMapping("/bpmn-js")
 public class BpmnJsController {
 

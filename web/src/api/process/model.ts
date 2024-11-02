@@ -1,5 +1,6 @@
 import request from '@/utils/http/axios';
 import {PageResult, QueryPageBean, Result} from '@/utils/http/axios/axios';
+import {AxiosResponse} from 'axios';
 
 /**
  * 新增
@@ -46,5 +47,25 @@ export const getByPaged = (data: QueryPageBean) => {
 export const getInfoById = (id: string) => {
   return request.get<Result<PageResult<ModelVO>>>({
     url: '/model/' + id
+  });
+};
+
+/**
+ * 导出流程模型文件
+ */
+export const exportModel = (id: string) => {
+  return request.get<AxiosResponse>({
+    url: '/model/export/' + id,
+    // 重要! 设置响应类型为 blob 或 arraybuffer
+    responseType: 'blob'
+  });
+};
+
+/**
+ * 部署模型
+ */
+export const deployment = (id: string) => {
+  return request.post<Result<boolean>>({
+    url: '/model/deploy/' + id
   });
 };

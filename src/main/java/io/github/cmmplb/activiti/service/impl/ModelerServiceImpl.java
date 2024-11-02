@@ -30,6 +30,7 @@ public class ModelerServiceImpl implements ModelerService {
     @Autowired
     private ModelService modelService;
 
+    // 管理和控制流程定义的服务接口，包括部署、查询和删除流程定义等。
     @Autowired
     private RepositoryService repositoryService;
 
@@ -37,7 +38,7 @@ public class ModelerServiceImpl implements ModelerService {
     public boolean saveDesign(ModelerDTO dto) {
         Model model = repositoryService.getModel(dto.getId());
         if (null == model) {
-            throw new RuntimeException("模型信息不存在");
+            throw new BusinessException("模型信息不存在");
         }
         // 前端调用的参数：toolbar-default-actions.js：
         // var params = {
