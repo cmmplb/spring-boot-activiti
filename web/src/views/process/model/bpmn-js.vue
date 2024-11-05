@@ -28,13 +28,13 @@ import BpmnModeler from 'bpmn-js/lib/Modeler';
 import 'bpmn-js/dist/assets/diagram-js.css';
 // 这个不知道啥效果, 看样式是类名有 .bjs-container .bjs-breadcrumbs, 内容和面包屑样式? 后面看看会不会找到用的地方
 import 'bpmn-js/dist/assets/bpmn-js.css';
-
 // 左侧工具栏字体图标样式
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
 // 这个是一些 unicode 码, 生僻字不知道干啥的 0.0
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-codes.css';
 // 这个比 bpmn.css  多了两个 src base64
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css';
+
 import {
   BpmnPropertiesPanelModule,
   BpmnPropertiesProviderModule,
@@ -156,6 +156,8 @@ const handlerSave = async (close?: boolean) => {
     const res = await save(String(modelId), {xml, svg});
     if (res.code === 200 && res.data) {
       ElMessage({message: res.msg, type: 'success'});
+      // 获取模型信息, 刷新预览
+      await preview();
       if (close) {
         // 1 秒后关闭当前窗口
         setTimeout(() => {

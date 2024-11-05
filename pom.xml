@@ -101,6 +101,26 @@
             <artifactId>activiti-json-converter</artifactId>
             <version>${activiti-spring-boot-starter.version}</version>
         </dependency>
+        <!-- 流程图预览 -->
+        <dependency>
+            <groupId>org.activiti</groupId>
+            <artifactId>activiti-image-generator</artifactId>
+            <version>${activiti-spring-boot-starter.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.xmlgraphics</groupId>
+                    <artifactId>batik-awt-util</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.xmlgraphics</groupId>
+                    <artifactId>batik-dom</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.xmlgraphics</groupId>
+                    <artifactId>batik-svggen</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <!-- 流程图设计 -->
         <dependency>
             <groupId>org.apache.xmlgraphics</groupId>

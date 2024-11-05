@@ -41,6 +41,11 @@ const constantRoutes = [
         path: '/process/deployment',
         component: () => import ('@/views/process/deployment/index.vue'),
         name: '部署管理'
+      },
+      {
+        path: '/process/definition',
+        component: () => import ('@/views/process/definition/index.vue'),
+        name: '定义管理'
       }
     ]
   }
