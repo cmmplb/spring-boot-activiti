@@ -13,7 +13,6 @@ import java.util.Date;
  * @since jdk 1.8
  */
 
-
 @Data
 @ApiModel(value = "DeploymentVO", description = "流程部署返回参数")
 public class DeploymentVO {

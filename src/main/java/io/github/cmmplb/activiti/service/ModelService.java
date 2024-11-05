@@ -29,5 +29,7 @@ public interface ModelService {
 
     void saveJsonXml(JSONObject bpmnXml, String id, String name, String description, String author, int revision);
 
+    void saveBpmnJsXml(String xmlString, String id, String key, String name, String description, int revision);
+
     void saveSvg(String id, String svgXml);
 }

@@ -72,6 +72,8 @@ feature
 ├── 3.3         前端布局
 ├── 3.4         模型管理-前端实现
 ├── 3.5         整合activiti-modeler+bpmn-js
+├── 3.6         部署管理
+├── 3.7         定义管理
 ````
 
 **feature/latest version todo**：
@@ -81,7 +83,8 @@ feature
 - 首页数据统计 ❌
 - 流程管理
     - 模型管理 ✅
-    - 部署管理 ❌
+    - 部署管理 ✅
+    - 定义管理 ✅
 - 事项申请
     - 发起申请 ❌
     - 申请历史 ❌
@@ -135,6 +138,10 @@ feature
 [3.4.模型管理-前端实现.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.4.%E6%A8%A1%E5%9E%8B%E7%AE%A1%E7%90%86-%E5%89%8D%E7%AB%AF%E5%AE%9E%E7%8E%B0.md)
 
 [3.5.整合activiti-modeler+bpmn-js.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.5.%E6%95%B4%E5%90%88activiti-modeler%2Bbpmn-js.md)
+
+[3.6.部署管理.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.6.%E9%83%A8%E7%BD%B2%E7%AE%A1%E7%90%86.md)
+
+[3.7.定义管理.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.7.%E5%AE%9A%E4%B9%89%E7%AE%A1%E7%90%86.md)
 
 ### tag/2.5.3 相关功能：
 

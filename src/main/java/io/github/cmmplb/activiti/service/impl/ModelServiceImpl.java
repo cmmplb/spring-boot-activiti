@@ -44,10 +44,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
@@ -103,31 +100,29 @@ public class ModelServiceImpl implements ModelService {
         model.setMetaInfo(JSON.toJSONString(metaInfo));
         // 保存模型到 act_re_model 表
         repositoryService.saveModel(model);
+        // 这个一定要设置一下, 用来转换模型时, 保存关联模型使用的
+        dto.setId(model.getId());
 
-        // 构建一个空模型文件 ModelEditorSource, 这个步骤是为了后续设计流程图时使用, 如果没有的话, activiti modeler 页面空白操作不了
-        // 设计类型:1-activiti modeler;2-bpmn-js; bpmn-js 没有 properties 属性
-        if (dto.getDesignType().equals(1)) {
-            JSONObject bpmnXml = new JSONObject();
-            // 为什么是 canvas 这个值? 可以去设计一个流程之后, 查看 getModelEditorSource 返回的 json 数据, 等后面写了流程设计之后查看
-            bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_ID, "canvas");
+        // 是否生成流程文件
+        if (dto.getGenerateProcess()) {
+            // 构建一个空模型文件 ModelEditorSource, 这个步骤是为了后续设计流程图时使用, 如果没有的话, activiti modeler 页面空白操作不了
+            // 设计类型:1-activiti modeler;2-bpmn-js; bpmn-js 没有 properties 属性
+            if (dto.getDesignType().equals(1)) {
+                JSONObject bpmnXml = new JSONObject();
+                // 为什么是 canvas 这个值? 可以去设计一个流程之后, 查看 getModelEditorSource 返回的 json 数据, 等后面写了流程设计之后查看
+                bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_ID, "canvas");
 
-            // 创建 activiti modeler 空节点
-            HashMap<String, String> stencilset = new HashMap<>();
-            stencilset.put("namespace", "http://b3mn.org/stencilset/bpmn2.0#");
-            bpmnXml.put("stencilset", stencilset);
+                // 创建 activiti modeler 空节点
+                HashMap<String, String> stencilset = new HashMap<>();
+                stencilset.put("namespace", "http://b3mn.org/stencilset/bpmn2.0#");
+                bpmnXml.put("stencilset", stencilset);
 
-            // 更新流程设计文件
-            saveJsonXml(bpmnXml, model.getId(), dto.getName(), dto.getDescription(), dto.getAuthor(), revision);
-        } else {
-            // 初始化一个开始节点的 bpmn-js 模型, 注意, 这里的 xml 我在设计界面中-> 常规-可执行文件勾选好了, 如果不勾选部署的时候会报错:
-            // All process definition are set to be non-executable (property 'isExecutable' on process). This is not allowed. - [Extra info : ]
-            String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<bpmn:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" id=\"Definitions_1\" targetNamespace=\"http://bpmn.io/schema/bpmn\"><bpmn:process id=\"Process_1\" isExecutable=\"true\"><bpmn:startEvent id=\"StartEvent_1\" /></bpmn:process><bpmndi:BPMNDiagram id=\"BPMNDiagram_1\"><bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"Process_1\"><bpmndi:BPMNShape id=\"_BPMNShape_StartEvent_2\" bpmnElement=\"StartEvent_1\"><dc:Bounds x=\"173\" y=\"102\" width=\"36\" height=\"36\" /></bpmndi:BPMNShape></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>";
-            String svg = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- created with bpmn-js / http://bpmn.io -->\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"46\" height=\"46\" viewBox=\"168 97 46 46\" version=\"1.1\"><g class=\"djs-group\"><g class=\"djs-element djs-shape\" data-element-id=\"StartEvent_1\" style=\"display: block;\" transform=\"matrix(1 0 0 1 173 102)\"><g class=\"djs-visual\"><circle cx=\"18\" cy=\"18\" r=\"18\" style=\"stroke-linecap: round; stroke-linejoin: round; stroke: rgb(34, 36, 42); stroke-width: 2px; fill: white; fill-opacity: 0.95;\"/></g><rect class=\"djs-hit djs-hit-all\" x=\"0\" y=\"0\" width=\"36\" height=\"36\" style=\"fill: none; stroke-opacity: 0; stroke: white; stroke-width: 15px;\"/><circle cx=\"18\" cy=\"18\" r=\"23\" class=\"djs-outline\" style=\"fill: none;\"/></g></g></svg>";
-            // 添加流程设计文件, 注意, activiti-modeler 保存的是 json, bpmn-js 保存的是 xml
-            repositoryService.addModelEditorSource(model.getId(), xml.getBytes(StandardCharsets.UTF_8));
-
-            // 添加流程图片信息
-            saveSvg(model.getId(), svg);
+                // 更新 activiti-modeler 流程设计文件
+                saveJsonXml(bpmnXml, model.getId(), dto.getName(), dto.getDescription(), dto.getAuthor(), revision);
+            } else {
+                // 更新 bpmn-js 流程设计文件
+                saveBpmnJsXml(null, model.getId(), dto.getKey(), dto.getName(), dto.getDescription(), revision);
+            }
         }
         return true;
     }
@@ -163,10 +158,17 @@ public class ModelServiceImpl implements ModelService {
         repositoryService.saveModel(model);
 
         byte[] modelData = repositoryService.getModelEditorSource(dto.getId());
-        // 如果设计类型是 activiti modeler, 更新流程设计文件信息
-        if (!Arrays.isNullOrEmpty(modelData) && dto.getDesignType().equals(1)) {
-            saveJsonXml(JSON.parseObject(new String(modelData, StandardCharsets.UTF_8)),
-                    dto.getId(), dto.getName(), dto.getDescription(), dto.getAuthor(), revision);
+        // 如果设计类型是 activiti modeler,
+        if (!Arrays.isNullOrEmpty(modelData)) {
+            // 设计类型:1-activiti modeler;2-bpmn-js;
+            if (dto.getDesignType().equals(1)) {
+                // 更新 activiti-modeler 流程设计文件
+                saveJsonXml(JSON.parseObject(new String(modelData, StandardCharsets.UTF_8)),
+                        dto.getId(), dto.getName(), dto.getDescription(), dto.getAuthor(), revision);
+            } else {
+                // 更新 bpmn-js 流程设计文件
+                saveBpmnJsXml(new String(modelData, StandardCharsets.UTF_8), dto.getId(), dto.getKey(), dto.getName(), dto.getDescription(), revision);
+            }
         }
         return true;
     }
@@ -399,6 +401,66 @@ public class ModelServiceImpl implements ModelService {
         bpmnXml.put(EditorJsonConstants.EDITOR_SHAPE_PROPERTIES, properties);
         // 保存模型文件到 act_ge_bytearray 表
         repositoryService.addModelEditorSource(id, bpmnXml.toJSONString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public void saveBpmnJsXml(String xmlString, String id, String key, String name, String description, int revision) {
+        if (StringUtils.isBlank(xmlString)) {
+            // 为空则新增 bpmn-js 模型文件
+            // 初始化一个开始节点的 bpmn-js 模型, 注意, 这里的 xml 我在设计界面中-> 常规-可执行文件勾选好了, 如果不勾选部署的时候会报错:
+            // All process definition are set to be non-executable (property 'isExecutable' on process). This is not allowed. - [Extra info : ]
+            String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<bpmn:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" xmlns:camunda=\"http://camunda.org/schema/1.0/bpmn\" targetNamespace=\"http://bpmn.io/schema/bpmn\"><bpmn:process id=\"${id}\" name=\"${name}\" isExecutable=\"true\" camunda:versionTag=\"${version}\"><bpmn:documentation>${description}</bpmn:documentation><bpmn:startEvent id=\"${startId}\" /></bpmn:process><bpmndi:BPMNDiagram id=\"BPMNDiagram_${key}\"><bpmndi:BPMNPlane id=\"BPMNPlane_${key}\" bpmnElement=\"${id}\"><bpmndi:BPMNShape id=\"_BPMNShape_${startId}\" bpmnElement=\"${startId}\"><dc:Bounds x=\"173\" y=\"102\" width=\"36\" height=\"36\" /></bpmndi:BPMNShape></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>";
+            String svg = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!-- created with bpmn-js / http://bpmn.io -->\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"46\" height=\"46\" viewBox=\"168 97 46 46\" version=\"1.1\"><g class=\"djs-group\"><g class=\"djs-element djs-shape\" data-element-id=\"${startId}\" style=\"display: block;\" transform=\"matrix(1 0 0 1 173 102)\"><g class=\"djs-visual\"><circle cx=\"18\" cy=\"18\" r=\"18\" style=\"stroke-linecap: round; stroke-linejoin: round; stroke: rgb(34, 36, 42); stroke-width: 2px; fill: white; fill-opacity: 0.95;\"/></g><rect class=\"djs-hit djs-hit-all\" x=\"0\" y=\"0\" width=\"36\" height=\"36\" style=\"fill: none; stroke-opacity: 0; stroke: white; stroke-width: 15px;\"/><circle cx=\"18\" cy=\"18\" r=\"23\" class=\"djs-outline\" style=\"fill: none;\"/></g></g></svg>";
+
+            // 把 id, name, version 动态赋值 到 xml 中 ${name}
+            Map<String, Object> variables = new HashMap<>();
+            // 注意，id 流程唯一标识, 必须是下划线或者字母开头
+            variables.put("id", "_" + id);
+            variables.put("name", name);
+            variables.put("description", description);
+            variables.put("key", key);
+            variables.put("version", revision);
+            variables.put("startId", "sid-" + UUID.randomUUID());
+
+            // 替换初始化模板里面相关属性值
+            xml = XmlUtil.replaceXml(xml, variables);
+            // 添加流程设计文件, 注意, activiti-modeler 保存的是 json, bpmn-js 保存的是 xml
+            repositoryService.addModelEditorSource(id, xml.getBytes(StandardCharsets.UTF_8));
+
+            // 添加流程图片信息
+            saveSvg(id, XmlUtil.replaceXml(svg, variables));
+
+        } else {
+            // 修改模型文件里面的属性
+            // name
+            String elementName = "bpmn:process";
+            String attributeName = "name";
+            String attributeValue = name;
+            xmlString = XmlUtil.setElementAttribute(xmlString, elementName, attributeName, attributeValue);
+
+            // version
+            attributeName = "camunda:versionTag";
+            attributeValue = revision + "";
+            xmlString = XmlUtil.setElementAttribute(xmlString, elementName, attributeName, attributeValue);
+
+            // key
+            elementName = "bpmndi:BPMNDiagram";
+            attributeName = "id";
+            attributeValue = "BPMNDiagram_" + key;
+            xmlString = XmlUtil.setElementAttribute(xmlString, elementName, attributeName, attributeValue);
+
+            elementName = "bpmndi:BPMNPlane";
+            attributeName = "id";
+            attributeValue = "BPMNPlane_" + key;
+            xmlString = XmlUtil.setElementAttribute(xmlString, elementName, attributeName, attributeValue);
+
+            // description
+            elementName = "bpmn:documentation";
+            xmlString = XmlUtil.setElementContent(xmlString, elementName, description);
+
+            // 更新流程设计文件, 注意, activiti-modeler 保存的是 json, bpmn-js 保存的是 xml
+            repositoryService.addModelEditorSource(id, xmlString.getBytes(StandardCharsets.UTF_8));
+        }
     }
 
     @Override

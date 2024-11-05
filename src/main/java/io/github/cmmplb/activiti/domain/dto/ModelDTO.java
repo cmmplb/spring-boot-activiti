@@ -36,6 +36,13 @@ public class ModelDTO {
     @ApiModelProperty(value = "设计类型:1-activiti modeler;2-bpmn-js;")
     private Integer designType;
 
+    @ApiModelProperty(value = "是否生成流程文件", hidden = true)
+    private Boolean generateProcess;
+
     // 设计类型:1-activiti modeler;2-bpmn-js;
     public static final String DESIGN_TYPE = "designType";
+
+    public Boolean getGenerateProcess() {
+        return null == generateProcess || generateProcess;
+    }
 }

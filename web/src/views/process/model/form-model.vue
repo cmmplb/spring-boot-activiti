@@ -9,11 +9,12 @@
         :model="form"
         :rules="rules"
       >
-        <el-form-item label="模型关键字" prop="key">
-          <el-input v-model="form.key" placeholder="请输入模型关键字"></el-input>
-        </el-form-item>
+        <!-- 这个 form 看有时间跟 table 一样，封装一个组件 -->
         <el-form-item label="模型名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入模型名称"></el-input>
+        </el-form-item>
+        <el-form-item label="模型关键字" prop="key">
+          <el-input v-model="form.key" placeholder="请输入模型关键字"></el-input>
         </el-form-item>
         <el-form-item label="模型类型" prop="category">
           <el-input v-model="form.category" placeholder="请输入模型类型"></el-input>

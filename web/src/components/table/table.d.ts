@@ -32,7 +32,7 @@ declare interface Switch {
 // 表格列选项配置, 例如用户性别字段, 0:男, 1:女, 2:保密
 declare interface Option {
   // 选项值
-  value: string | number,
+  value: string | number | boolean,
   // 选项名称
   label: string,
   // 启用 element plus 的 tag 标签, 对应 tag-type 属性
