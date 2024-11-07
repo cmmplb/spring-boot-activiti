@@ -30,6 +30,8 @@
 | bpmn-js                  | 17.11.1 |
 | bpmn-js-properties-panel | 5.25.0  |
 | diagram-js-minimap       | 5.1.0   |
+| crypto-js                | 4.2.0   |
+| highlight.js             | 11.10.0 |
 
 **其他版本查看 package.json**
 
@@ -37,9 +39,18 @@
 
 - doc 目录下写了项目模块搭建过程以及 activiti 每个功能的实现步骤，尽量把所有功能以及表字段都使用上，防止以后再回头看花费时间，多写了些注释。
 
-- doc/db/v7.1.0.M6.sql 脚本是 activiti 初始化时自动生成的相关表，这里加上了各个表的字段注释，可以执行一遍脚本刷一下表注释（初始化生成的表名是大写的，脚本里面的是小写的）。
+- doc/db/v7.1.0.M6.sql 脚本是 activiti 初始化时自动生成的相关表，这里加上了各个表的字段注释，可以执行一遍脚本刷一下表注释。
+  初始化生成的表名和字段名是大写的，脚本里面的是小写的（阿里建表规约，2.【强制】表名、字段名必须使用小写字母或数字，禁止出现数字开头，禁止两个下划线中间
+  只出现数字）。
 
 - tag/2.5.3 分支是之前学习 activiti 的时候敲的，基于 springboot 2.5.3 + thymeleaf 快速集成，配合使用 Element-UI + Vue。
+
+**在线访问**
+
+vue3：http://www.cmmplb.top/vue3
+
+tag/2.5.3：http://www.cmmplb.top (1m 带宽的拉跨服务器，卡的一批，前后端未分离的情况下切换页面会导致重新加载 axios、vue 和
+element-ui 的 js、css 文件，造成页面响应慢的情况)
 
 ---
 
@@ -74,6 +85,7 @@ feature
 ├── 3.5         整合activiti-modeler+bpmn-js
 ├── 3.6         部署管理
 ├── 3.7         定义管理
+├── 3.8         整合spring-security登录
 ````
 
 **feature/latest version todo**：
@@ -85,14 +97,14 @@ feature
     - 模型管理 ✅
     - 部署管理 ✅
     - 定义管理 ✅
-- 事项申请
+- 事项管理
     - 发起申请 ❌
-    - 申请历史 ❌
+    - 申请记录 ❌
 - 办理事项
     - 代办任务 ❌
     - 已办任务 ❌
-- Spring Security 5.7+ 权限配置 ❌
-- 用户、用户组、租户 ❌
+- Spring Security 5.7+ 权限配置 ✅
+- 流程关联用户、用户组、租户 ❌
 
 **tag/2.5.3**：
 
@@ -143,6 +155,8 @@ feature
 
 [3.7.定义管理.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.7.%E5%AE%9A%E4%B9%89%E7%AE%A1%E7%90%86.md)
 
+[3.8.整合spring-security登录.md](doc%2F3.%E8%BF%9B%E9%98%B6%2F3.8.%E6%95%B4%E5%90%88spring-security%E7%99%BB%E5%BD%95.md)
+
 ### tag/2.5.3 相关功能：
 
 Activiti Modeler 查看流程进度 ：
@@ -158,3 +172,7 @@ Bpmn-Js 查看流程进度：
 https://gitee.com/leafseelight/Spring-activiti
 
 https://gitee.com/shenzhanwang/RuoYi-activiti
+
+阿里规约插件：
+
+https://github.com/alibaba/p3c

@@ -42,3 +42,10 @@ export const menuList = reactive<Array<Menu>>([
     ]
   }
 ]);
+
+export default {
+  // 凭证
+  authorizationPrefix: 'Authorization',
+  // 重定向 url
+  redirectToPrefix: 'redirectTo',
+};

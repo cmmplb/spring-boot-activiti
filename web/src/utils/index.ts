@@ -1,5 +1,6 @@
 // 下载文件
 import {AxiosResponse} from 'axios';
+import CryptoJS from 'crypto-js';
 import {ElMessage} from 'element-plus';
 
 export const downFile = (response: AxiosResponse<any, any>, fileName: string) => {
@@ -48,4 +49,35 @@ export const downFile = (response: AxiosResponse<any, any>, fileName: string) =>
       window.URL.revokeObjectURL(url);
     }
   };
+};
+
+export const getBase = () => {
+  return import.meta.env.VITE_APP_BASE_PATH;
+};
+
+export const getRoutingModeBase = () => {
+  if (getRoutingMode() === 'hash') {
+    // hash 模式需要添加 /# 前缀
+    return getBase() + '/#';
+  }
+  return getBase();
+};
+
+export const getRoutingMode = () => {
+  // 检查当前URL中的hash部分
+  const hash = window.location.hash;
+
+  if (hash.length > 1) {
+    // 如果hash长度大于1，则表示是hash模式
+    return 'hash';
+  } else {
+    // 否则，可能是 history 模式
+    const historyApiSupported = 'pushState' in history;
+    return historyApiSupported ? 'history' : 'hash';
+  }
+};
+
+// 静态方法，用于对给定字符串进行MD5加密
+export const md5 = (str: string): string => {
+  return CryptoJS.MD5(str).toString();
 };
