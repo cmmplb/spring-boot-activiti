@@ -30,6 +30,8 @@
 | bpmn-js                  | 17.11.1 |
 | bpmn-js-properties-panel | 5.25.0  |
 | diagram-js-minimap       | 5.1.0   |
+| crypto-js                | 4.2.0   |
+| highlight.js             | 11.10.0 |
 
 **其他版本查看 package.json**
 
@@ -42,6 +44,13 @@
   只出现数字）。
 
 - tag/2.5.3 分支是之前学习 activiti 的时候敲的，基于 springboot 2.5.3 + thymeleaf 快速集成，配合使用 Element-UI + Vue。
+
+**在线访问**
+
+vue3：http://www.cmmplb.top/vue3
+
+tag/2.5.3：http://www.cmmplb.top (1m 带宽的拉跨服务器，卡的一批，前后端未分离的情况下切换页面会导致重新加载 axios、vue 和
+element-ui 的 js、css 文件，造成页面响应慢的情况)
 
 ---
 
@@ -111,10 +120,6 @@ feature
 - 办理事项
     - 代办任务 ✅
     - 已办任务 ✅
-
-在线访问 tag/2.5.3：http://www.cmmplb.top
-(1m 带宽的拉跨服务器，卡的一批，然后又是前后端未分离，切换页面的时候又要重新加载 axios、vue 和 element-ui 的 css
-文件，导致响应慢，等 vue3 这个部署看看响应情况)
 
 ### 文档目录
 

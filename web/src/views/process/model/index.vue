@@ -115,7 +115,7 @@ import {ElMessage, ElMessageBox} from 'element-plus';
 import {QueryPageBean} from '@/utils/http/axios/axios';
 import FormModel from '@/views/process/model/form-model.vue';
 import {AxiosResponse} from 'axios';
-import {downFile} from '@/utils';
+import {downFile, getRoutingModeBase} from '@/utils';
 import Form from '@/components/form/index.vue';
 import {FormItem} from '@/components/form/form';
 
@@ -240,13 +240,13 @@ const handlerAdd = () => {
 // 点击设计按钮
 const handlerDesign = (row: ModelVO) => {
   // 跳转到模型设计页面
-  window.open('/activiti-modeler?modelId=' + row.id, '_blank');
+  window.open(getRoutingModeBase() + '/activiti-modeler?modelId=' + row.id, '_blank');
 };
 
 // 点击设计(bpmn-js)按钮
 const handlerDesignBpmnJs = (row: ModelVO) => {
   // 跳转到模型设计页面
-  window.open('/bpmn-js?modelId=' + row.id, '_blank');
+  window.open(getRoutingModeBase() + '/bpmn-js?modelId=' + row.id, '_blank');
 };
 
 // 点击部署按钮

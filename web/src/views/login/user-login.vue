@@ -76,8 +76,7 @@ const doLogin = async () => {
         const redirectTo = localStorage.getItem(constant.redirectToPrefix);
         if (redirectTo) {
           localStorage.removeItem(constant.redirectToPrefix);
-          // 跳转到回调地址
-          window.location.href = redirectTo;
+          await router.push({path: redirectTo});
         } else {
           // 跳转到首页
           await router.push({path: '/'});

@@ -67,8 +67,8 @@ public class AuthenticationController {
         String authorization = UUID.randomUUID().toString();
         String prefix = SecurityConstant.AUTHORIZATION_PREFIX + authorization;
         try {
-            // 这里使用内存来缓存用户信息, 需要使用其他方案缓存用户信息的话再调整, 单位毫秒值, 缓存十分钟
-            TimeExpiredPoolCacheUtil.getInstance().put(prefix, JSON.toJSONString(userDetails), 10 * 60 * 1000L);
+            // 这里使用内存来缓存用户信息, 需要使用其他方案缓存用户信息的话再调整, 单位毫秒值, 缓存三十分钟
+            TimeExpiredPoolCacheUtil.getInstance().put(prefix, JSON.toJSONString(userDetails), 30 * 60 * 1000L);
         } catch (Exception e) {
             throw new BusinessException("设置缓存信息失败");
         }

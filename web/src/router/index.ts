@@ -55,11 +55,12 @@ const constantRoutes = [
   }
 ];
 
-const router = createRouter({
-  // 相同的 url, history 会触发添加到浏览器历史记录栈中, hash 不会触发, history 需要后端配合, 如果后端不配合刷新新页面会出现404, hash 不需要
-  history: createWebHistory(),
+export const router = createRouter({
+  // 相同的 url, history 会触发添加到浏览器历史记录栈中, hash 不会触发, WebHistory 需要后端配合, 如果后端不配合刷新新页面会出现404, hash 不需要
+  history: createWebHistory(import.meta.env.VITE_APP_BASE_PATH),
   // Hash 模式会在根目录后面拼接 /#/, 优点是刷新页面不会丢失, 缺点是URL会多一个 /#/
-  // history: createWebHashHistory(),
+  // history: createWebHashHistory(import.meta.env.VITE_APP_BASE_PATH),
+  // history: createMemoryHistory(import.meta.env.VITE_APP_BASE_PATH),
   routes: constantRoutes,
   strict: true,
   scrollBehavior: () => ({left: 0, top: 0})

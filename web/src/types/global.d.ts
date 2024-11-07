@@ -9,6 +9,7 @@ declare module '*.vue' {
 // 声明全局变量
 interface Window {
   $contextRoot: string;
+  $authorization: string;
 }
 
 // 属性栏模块包类型
