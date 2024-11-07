@@ -18,3 +18,8 @@ declare module 'camunda-bpmn-moddle/resources/camunda';
 
 // 小地图模块包类型
 declare module 'diagram-js-minimap';
+
+// 加密
+declare module 'crypto-js' {
+  export function MD5(message: string): string;
+}

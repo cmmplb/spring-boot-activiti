@@ -6,15 +6,19 @@ import Layout from '@/layout/index.vue';
 const constantRoutes = [
   {
     path: '/',
+    component: Layout,
     redirect: '/',
     children: [
       {
         path: '/',
         component: () => import ('@/views/home/index.vue'),
-        name: '首页',
-        meta: {title: '首页', icon: 'dashboard', affix: true}
+        name: '首页'
       }
     ]
+  },
+  {
+    path: '/login',
+    component: () => import ('@/views/login/index.vue')
   },
   {
     path: '/activiti-modeler',

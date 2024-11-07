@@ -93,6 +93,10 @@
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-actuator-autoconfigure</artifactId>
                 </exclusion>
+                <exclusion>
+                    <artifactId>mybatis</artifactId>
+                    <groupId>org.mybatis</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
         <!-- activiti json 转换器 -->
@@ -190,6 +194,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
+        <!-- security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
     </dependencies>
 

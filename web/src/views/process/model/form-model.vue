@@ -1,43 +1,20 @@
 <template>
   <div class='form-container'>
-    <el-dialog :title="(form.id? '编辑': '新增')+'模型'" v-model="visibleValue" style="max-width: 500px;padding: 50px"
+    <el-dialog :title="(dataForm.id? '编辑': '新增')+'模型'" v-model="visibleValue"
+               style="max-width: 500px;padding: 50px"
                :before-close="handleClose">
-      <!-- Form 表单: https://element-plus.org/zh-CN/component/form.html -->
-      <el-form
-        label-width="auto"
+      <Form
         ref="dataFormRef"
-        :model="form"
+        :form="dataForm"
+        :formItems="dataFormItems"
         :rules="rules"
       >
-        <!-- 这个 form 看有时间跟 table 一样，封装一个组件 -->
-        <el-form-item label="模型名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入模型名称"></el-input>
-        </el-form-item>
-        <el-form-item label="模型关键字" prop="key">
-          <el-input v-model="form.key" placeholder="请输入模型关键字"></el-input>
-        </el-form-item>
-        <el-form-item label="模型类型" prop="category">
-          <el-input v-model="form.category" placeholder="请输入模型类型"></el-input>
-        </el-form-item>
-        <el-form-item label="模型设计类型" prop="designType">
-          <el-radio-group v-model="form.designType">
-            <!-- 未来版本将移除 :label 改为 :value -->
-            <el-radio :key="1" :value="1">activiti-modeler</el-radio>
-            <el-radio :key="2" :value="2">bpmn-js</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <!-- 只有 activiti-modeler 才需要填写作者，bpmn-js 没有 properties 属性 -->
-        <el-form-item v-if="form.designType === 1" label="模型作者" prop="author">
-          <el-input v-model="form.author" placeholder="请输入模型作者"></el-input>
-        </el-form-item>
-        <el-form-item label="模型描述" prop="description">
-          <el-input v-model="form.description" type="textarea" placeholder="请输入模型描述"></el-input>
-        </el-form-item>
-      </el-form>
+      </Form>
+
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="handlerCancel">取 消</el-button>
-          <el-button type="primary" @click="handlerConfirm(dataFormRef)">确 定</el-button>
+          <el-button type="primary" @click="handlerConfirm">确 定</el-button>
         </div>
       </template>
     </el-dialog>
@@ -47,7 +24,9 @@
 <script setup lang="ts">
 import {getInfoById, save, updateById} from '@/api/process/model';
 import {nextTick, onMounted, reactive, ref, watch} from 'vue';
-import {ElMessage, FormInstance, FormRules} from 'element-plus';
+import {ElMessage, FormRules} from 'element-plus';
+import Form from '@/components/form/index.vue';
+import {FormItem} from '@/components/form/form';
 
 // 父组件传值
 const props = defineProps({
@@ -56,8 +35,10 @@ const props = defineProps({
     type: Boolean
   }
 });
+// Vue 3 写法, 获取 ref 定义的组件实例
+const dataFormRef = ref();
 // 表单参数
-const form = reactive<ModelDTO>({
+const dataForm = reactive<ModelDTO>({
   id: '',
   key: '',
   name: '',
@@ -66,6 +47,58 @@ const form = reactive<ModelDTO>({
   description: '',
   designType: 1
 });
+// 表单项
+const dataFormItems = reactive<FormItem[]>([
+  {
+    prop: 'name',
+    label: '模型名称',
+    placeholder: '请输入模型名称'
+  },
+  {
+    prop: 'key',
+    label: '模型关键字',
+    placeholder: '请输入模型关键字'
+  },
+  {
+    prop: 'category',
+    label: '模型类型',
+    placeholder: '请输入模型类型'
+  },
+  {
+    prop: 'designType',
+    label: '模型设计类型',
+    type: 'radio',
+    options: [
+      {
+        label: 'activiti-modeler',
+        value: 1
+      },
+      {
+        label: 'bpmn-js',
+        value: 2
+      }
+    ],
+    placeholder: 'designType'
+  },
+  {
+    prop: 'author',
+    label: '模型作者',
+    // 只有 activiti-modeler 才需要填写作者，bpmn-js 没有保存作者的属性
+    conditions: [
+      {
+        prop: 'designType',
+        value: 1
+      }
+    ],
+    placeholder: '请输入模型作者'
+  },
+  {
+    prop: 'description',
+    label: '模型描述',
+    type: 'textarea',
+    placeholder: '请输入模型描述'
+  }
+]);
 // 表单校验规则
 const rules = reactive<FormRules<ModelDTO>>({
   key: [
@@ -87,8 +120,6 @@ const rules = reactive<FormRules<ModelDTO>>({
     {min: 1, max: 3000, message: '模型类型长度限制 3000', trigger: 'blur'}
   ]
 });
-// Vue 3 写法, 获取 ref 定义的组件实例
-const dataFormRef = ref<FormInstance>();
 // 利用 defineEmits 方法返回函数触发自定义事件, 不需要引入直接使用, 用于子组件与父组件通信
 const emit = defineEmits(['refreshData', 'closeModel']);
 // 在 vue3 中 el-dialog 把 visible 属性改为了 v-model, 这里子组件不能更改 props 里面的数据, 也不能使用 v-model 绑定
@@ -110,30 +141,27 @@ const handlerCancel = () => {
 };
 
 // 确认事件
-const handlerConfirm = async (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  await formEl.validate(async (valid, fields) => {
-      if (valid) {
-        let res;
-        if (form.id) {
-          res = await updateById(form.id, form);
-        } else {
-          res = await save(form);
-        }
-        if (res.code === 200 && res.data) {
-          ElMessage({message: form.id ? '修改成功' : '新增成功', type: 'success'});
-          // 搜索刷新列表
-          emit('refreshData');
-          // 关闭弹窗
-          handleClose();
-        } else {
-          ElMessage({message: res.msg, type: 'error'});
-        }
+const handlerConfirm = async () => {
+  if (dataFormRef.value) {
+    const valid = await dataFormRef.value.validate();
+    if (valid) {
+      let res;
+      if (dataForm.id) {
+        res = await updateById(dataForm.id, dataForm);
       } else {
-        console.log('未通过字段校验:', fields);
+        res = await save(dataForm);
+      }
+      if (res.code === 200 && res.data) {
+        ElMessage({message: dataForm.id ? '修改成功' : '新增成功', type: 'success'});
+        // 搜索刷新列表
+        emit('refreshData');
+        // 关闭弹窗
+        handleClose();
+      } else {
+        ElMessage({message: res.msg, type: 'error'});
       }
     }
-  );
+  }
 };
 
 // 关闭弹窗
@@ -143,20 +171,19 @@ const handleClose = () => {
 
 // 初始化表单
 const init = (id?: string) => {
-  // 在 DOM 更新后执行回调
   nextTick(async () => {
-    if (!dataFormRef.value) return;
-    // 重置数据
-    dataFormRef.value.resetFields();
-    // 传了 id 参数则为修改操作
-    if (id) {
-      const res = await getInfoById(id);
-      if (res.code === 200 && res.data) {
-        // 把原来的值覆盖
-        Object.assign(form, {...res.data});
+    if (dataFormRef.value) {
+      await dataFormRef.value.init();
+      // 传了 id 参数则为修改操作
+      if (id) {
+        const res = await getInfoById(id);
+        if (res.code === 200 && res.data) {
+          // 把原来的值覆盖
+          Object.assign(dataForm, {...res.data});
+        }
+      } else {
+        dataForm.id = undefined;
       }
-    } else {
-      form.id = undefined;
     }
   });
 };

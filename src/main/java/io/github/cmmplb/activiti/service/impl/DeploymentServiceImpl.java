@@ -60,6 +60,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<DeploymentVO> res = new ArrayList<>();
         // count 查询总数
         long total = query.count();
+        // 阿里规约, 代码中写分页查询逻辑时, 若count为0应直接返回, 避免执行后面的分页语句
         if (total > 0) {
             query.orderByDeploymenTime().desc();
             // 根据部署时间倒序, 分页查询

@@ -95,6 +95,8 @@
         </el-table-column>
       </template>
 
+      <!-- **注意**: Vue3 中使用具名插槽需要使用 template 进行包裹起来 -->
+      <!-- 操作插槽, 具名插槽: 即 <slot> 元素上使用 name 属性用来标识插槽, , 还有默认插槽和作用域插槽 -->
       <slot name="buttons"></slot>
     </el-table>
 

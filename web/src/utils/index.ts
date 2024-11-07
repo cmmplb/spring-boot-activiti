@@ -1,5 +1,6 @@
 // 下载文件
 import {AxiosResponse} from 'axios';
+import CryptoJS from 'crypto-js';
 import {ElMessage} from 'element-plus';
 
 export const downFile = (response: AxiosResponse<any, any>, fileName: string) => {
@@ -49,3 +50,8 @@ export const downFile = (response: AxiosResponse<any, any>, fileName: string) =>
     }
   };
 };
+
+// 静态方法，用于对给定字符串进行MD5加密
+export const md5 = (str: string): string => {
+  return CryptoJS.MD5(str).toString();
+}

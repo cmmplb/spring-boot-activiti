@@ -3,38 +3,31 @@
     <!-- 通过shadow属性设置卡片阴影出现的时机：always、hover或never -->
     <el-card shadow="always" class="search-card">
       <!-- 搜索表单区域 -->
-      <!-- inline 属性可以让表单域变为行内的表单域 -->
-      <el-form inline :model="searchForm" class="search-form">
-        <el-row>
-          <el-col :span="4">
-            <el-form-item label="关键词">
-              <el-input class="search-type-options" v-model="searchForm.keywords" clearable
-                        placeholder="关键词"></el-input>
-            </el-form-item>
-          </el-col>
-          <el-col :span="3">
-            <el-form-item>
-              <el-button type="primary" icon="Search" @click="handlerSearch">查 询</el-button>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
+      <Form
+        inline
+        :form="searchForm"
+        :formItems="searchFormItems"
+      >
+        <template #buttons>
+          <el-form-item>
+            <el-button type="primary" icon="Search" @click="handlerSearch">查 询</el-button>
+          </el-form-item>
+        </template>
+      </Form>
     </el-card>
 
     <el-card shadow="always" class="content-card">
       <!-- 新增按钮区域 -->
-      <el-form inline>
-        <el-form-item>
-          <el-button
-            icon="Plus"
-            type="primary"
-            plain
-            @click="handlerAdd"
-          >
-            新增
-          </el-button>
-        </el-form-item>
-      </el-form>
+      <el-row class="content-card-row">
+        <el-button
+          icon="Plus"
+          type="primary"
+          plain
+          @click="handlerAdd"
+        >
+          新增
+        </el-button>
+      </el-row>
 
       <!-- 表格区域 -->
       <Table
@@ -123,6 +116,8 @@ import {QueryPageBean} from '@/utils/http/axios/axios';
 import FormModel from '@/views/process/model/form-model.vue';
 import {AxiosResponse} from 'axios';
 import {downFile} from '@/utils';
+import Form from '@/components/form/index.vue';
+import {FormItem} from '@/components/form/form';
 
 // reactive 一般定义响应式数据, 例如数组、对象等, ref 一般定义基础类型数据, 例如字符串、数字等
 
@@ -182,16 +177,27 @@ const columns = reactive<Column[]>([
 ]);
 // 表格数据集
 const data = ref([]);
-// 搜索表单
-const searchForm = reactive<QueryPageBean>({
-  keywords: ''
-});
 // 分页参数
 const paginationData = reactive<Pagination>({
   size: 10,
   current: 1,
   total: 0
 });
+// 搜索表单
+const searchForm = reactive<QueryPageBean>({
+  keywords: ''
+});
+// 搜索表单项
+const searchFormItems = reactive<FormItem[]>([
+  {
+    prop: 'keywords',
+    label: '关键词',
+    placeholder: '关键词'
+  }
+]);
+
+// Vue 3 写法, 获取 ref 定义的组件实例
+const formModelRef = ref();
 // 新增/编辑表单是否显示
 const visible = ref(false);
 
@@ -219,12 +225,9 @@ const getData = async () => {
 // 分页改变调用的事件
 const paginationChange = (data: any) => {
   // 把原来的值覆盖
-  Object.assign(paginationData, {...paginationData, ...data});
+  Object.assign(paginationData, paginationData, data);
   getData();
 };
-
-// Vue 3 写法, 获取 ref 定义的组件实例
-const formModelRef = ref();
 
 // 点击添加按钮
 const handlerAdd = () => {
