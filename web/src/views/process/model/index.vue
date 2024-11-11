@@ -27,6 +27,14 @@
         >
           新增
         </el-button>
+        <el-button
+          icon="Upload"
+          type="primary"
+          plain
+          @click="handlerImport"
+        >
+          导入
+        </el-button>
       </el-row>
 
       <!-- 表格区域 -->
@@ -67,7 +75,7 @@
               </el-button
               >
               <el-button
-                icon="Edit"
+                icon="Download"
                 @click="handlerExport(scope.row)"
                 text
                 style="color: rgb(221,0,255)"
@@ -104,14 +112,42 @@
       @refreshData="getData"
     >
     </FormModel>
+
+    <!-- 文件上传弹窗, 在 vue3 中 el-dialog 把 visible 属性改为了 v-model -->
+    <el-dialog title="上传流程文件" v-model="uploadVisible" style="max-width: 500px;padding: 50px"
+               :before-close="handleClose">
+      <div>
+        <span>模型设计类型: </span>
+        <el-radio-group v-model="uploadForm.designType" v-for="option in uploadForm.options">
+          <el-radio :key="option.value" :value="option.value">{{ option.label }}</el-radio>
+        </el-radio-group>
+      </div>
+      <!--
+        上传组件: https://element-plus.org/zh-CN/component/upload.html
+        drag-是否启用拖拽上传-boolean-false; multiple-是否支持多选文件-boolean-false; auto-upload-是否在文件选择后立即进行上传-boolean-true;
+        :http-request-覆盖默认的 Xhr 行为，自定义实现上传文件的请求事件, 添加处理点击确认才调用上传
+        vue3 更换了 :file-list 为 v-model:file-list
+       -->
+      <el-upload ref="uploadRef" class="upload" drag multiple :auto-upload="false" v-model:file-list="fileList">
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">将流程文件拖到此处，或<em>点击上传</em></div>
+        <div class="el-upload__tip" slot="tip">提示: 仅允许导入 "bpmn", "xml" 或 "zip" 格式文件！</div>
+      </el-upload>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="handleClose">取 消</el-button>
+          <el-button type="primary" @click="handlerConfirm">确 定</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import {deployment, exportModel, getByPaged, removeById} from '@/api/process/model';
+import {deployment, exportModel, getByPaged, importModel, removeById} from '@/api/process/model';
 import Table from '@/components/table/index.vue';
 import {onMounted, reactive, ref} from 'vue';
-import {ElMessage, ElMessageBox} from 'element-plus';
+import {ElMessage, ElMessageBox, UploadInstance, UploadUserFile} from 'element-plus';
 import {QueryPageBean} from '@/utils/http/axios/axios';
 import FormModel from '@/views/process/model/form-model.vue';
 import {AxiosResponse} from 'axios';
@@ -200,6 +236,26 @@ const searchFormItems = reactive<FormItem[]>([
 const formModelRef = ref();
 // 新增/编辑表单是否显示
 const visible = ref(false);
+// 上传部署列表, { name: '...', url: '....' }
+const fileList = ref<UploadUserFile[]>([]);
+// 上传流程文件弹窗是否显示
+const uploadVisible = ref(false);
+// 导入表单
+const uploadForm = reactive({
+  designType: 1,
+  options: [
+    {
+      label: 'activiti-modeler',
+      value: 1
+    },
+    {
+      label: 'bpmn-js',
+      value: 2
+    }
+  ]
+});
+// Vue 3 写法, 获取 ref 定义的组件实例
+const uploadRef = ref<UploadInstance>();
 
 // 挂载完毕后执行的回调函数
 onMounted(() => {
@@ -234,6 +290,42 @@ const handlerAdd = () => {
   visible.value = true;
   if (formModelRef.value) {
     formModelRef.value.init(undefined);
+  }
+};
+
+// 点击导入按钮
+const handlerImport = () => {
+  uploadVisible.value = true;
+  fileList.value = [];
+};
+
+// 关闭上传流程文件弹窗
+const handleClose = () => {
+  uploadVisible.value = false;
+};
+
+// 确定上传
+const handlerConfirm = async () => {
+  // 手动提交上传，会调用http-request事件
+  // uploadRef.value!.submit();
+  let formData = new FormData();
+  // 这里上传文件我之前写的是 formData.append('files', ele); 控制台查看参数是 files: [object Object]
+  // 需要把上传的文件转换成二进制对象, Blob/file.raw(.raw 就是上传的 binary), 参数: files: （二进制）或者 files: (binary) 才是正确的
+  fileList.value.forEach(ele => {
+    // 注意要添加 .raw
+    formData.append('files', ele.raw!);
+    // 或者使用 blob
+    // formData.append('files', new Blob([ele.raw!]));
+  });
+  const res = await importModel(uploadForm.designType, formData);
+  if (res.code === 200 && res.data) {
+    ElMessage({type: 'success', message: '导入成功'});
+    // 刷新列表
+    await getData();
+    // 关闭弹窗
+    handleClose();
+  } else {
+    ElMessage({type: 'error', message: res.msg});
   }
 };
 
@@ -286,7 +378,7 @@ const handlerEdit = (row: ModelVO) => {
 
 // 点击删除按钮
 const handlerDelete = (row: ModelVO) => {
-  ElMessageBox.confirm('是否确认删除"' + row.id + '"的数据项？', '删除', {
+  ElMessageBox.confirm('是否确认删除"' + row.name + '"的数据项？', '删除', {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'warning'
@@ -312,9 +404,17 @@ const closeModel = () => {
 
 <style scoped lang='scss'>
 .model-container {
-
   .content-card {
     margin-top: 20px;
+  }
+
+  .upload {
+    margin-top: 20px;
+
+    .el-upload__tip {
+      margin-top: 15px;
+      color: red;
+    }
   }
 
 }

@@ -346,6 +346,7 @@ const handlerShowChartBpmnJs = async (row: ProcessDefinitionVO) => {
     bpmnModeler.value = markRaw(new ViewerModeler({
       container: canvasRef.value
     }));
+    console.log('res.data:',res.data);
     await bpmnModeler.value.importXML(res.data);
     const canvas = bpmnModeler.value.get('canvas');
     // 使流程图自适应屏幕

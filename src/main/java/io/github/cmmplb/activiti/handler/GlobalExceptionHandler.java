@@ -49,7 +49,7 @@ public class GlobalExceptionHandler<T> implements ResponseBodyAdvice<T> {
     @ExceptionHandler({Exception.class})
     public Result<?> exceptionHandler(Exception e) {
 
-        log.info("error:{}", e.getMessage());
+        log.error(e.getMessage(), e);
 
         // 处理业务异常
         if ((e instanceof BusinessException)) {
@@ -101,7 +101,6 @@ public class GlobalExceptionHandler<T> implements ResponseBodyAdvice<T> {
         }
 
         // 上述异常都没匹配
-        log.error(e.getMessage(), e);
         setStatusCode(HttpCodeEnum.INTERNAL_SERVER_ERROR.getCode());
         return ResultUtil.error(HttpCodeEnum.INTERNAL_SERVER_ERROR);
     }

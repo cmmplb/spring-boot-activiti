@@ -65,6 +65,10 @@ const interceptors: RequestInterceptors = {
         localStorage.setItem(constant.redirectToPrefix, refer);
         // 跳转到首页
         router.push({path: '/login'}).then();
+        // 防止页面重定向失败, 刷新页面
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
       }
       ElMessage({message: '登陆失效', type: 'error'});
       return Promise.reject(new Error('登陆失效'));

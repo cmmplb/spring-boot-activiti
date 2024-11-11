@@ -2,7 +2,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 -- ================================================================================================================================
 -- 流程事件日志记录表
-drop table if exists `act_evt_log`;
+DROP TABLE IF EXISTS `act_evt_log`;
 CREATE TABLE `act_evt_log`
 (
     `log_nr_`       bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -23,7 +23,7 @@ CREATE TABLE `act_evt_log`
   COLLATE = utf8mb4_general_ci COMMENT ='流程事件日志记录表';
 -- ================================================================================================================================
 -- 二进制数据表, 存放资源文件 (  图片, xml  ) 
-drop table if exists `act_ge_bytearray`;
+DROP TABLE IF EXISTS `act_ge_bytearray`;
 CREATE TABLE `act_ge_bytearray`
 (
     `id_`            varchar(64) NOT NULL COMMENT '主键',
@@ -40,7 +40,7 @@ CREATE TABLE `act_ge_bytearray`
   COLLATE = utf8mb4_general_ci COMMENT ='二进制数据表, 存放资源文件 (  图片, xml  ) ';
 -- ================================================================================================================================
 -- 系统相关属性表
-drop table if exists `act_ge_property`;
+DROP TABLE IF EXISTS `act_ge_property`;
 CREATE TABLE `act_ge_property`
 (
     `name_`  varchar(64) NOT NULL COMMENT '主键, 属性名称. schema.version, schema.history, next.dbid',
@@ -52,7 +52,7 @@ CREATE TABLE `act_ge_property`
   COLLATE = utf8mb4_general_ci COMMENT ='系统相关属性表';
 -- ================================================================================================================================
 -- 历史节点表
-drop table if exists `act_hi_actinst`;
+DROP TABLE IF EXISTS `act_hi_actinst`;
 CREATE TABLE `act_hi_actinst`
 (
     `id_`                varchar(64)  NOT NULL COMMENT '主键',
@@ -80,7 +80,7 @@ CREATE TABLE `act_hi_actinst`
   COLLATE = utf8mb4_general_ci COMMENT ='历史节点表';
 -- ================================================================================================================================
 -- 历史附件表
-drop table if exists `act_hi_attachment`;
+DROP TABLE IF EXISTS `act_hi_attachment`;
 CREATE TABLE `act_hi_attachment`
 (
     `id_`           varchar(64) NOT NULL COMMENT '主键',
@@ -100,7 +100,7 @@ CREATE TABLE `act_hi_attachment`
   COLLATE = utf8mb4_general_ci COMMENT ='历史附件表';
 -- ================================================================================================================================
 -- 历史审批意见表
-drop table if exists `act_hi_comment`;
+DROP TABLE IF EXISTS `act_hi_comment`;
 CREATE TABLE `act_hi_comment`
 (
     `id_`           varchar(64) NOT NULL COMMENT '主键',
@@ -118,7 +118,7 @@ CREATE TABLE `act_hi_comment`
   COLLATE = utf8mb4_general_ci COMMENT ='历史审批意见表';
 -- ================================================================================================================================
 -- 历史详情表
-drop table if exists `act_hi_detail`;
+DROP TABLE IF EXISTS `act_hi_detail`;
 CREATE TABLE `act_hi_detail`
 (
     `id_`           varchar(64)  NOT NULL COMMENT '主键',
@@ -147,7 +147,7 @@ CREATE TABLE `act_hi_detail`
   COLLATE = utf8mb4_general_ci COMMENT ='历史详情表';
 -- ================================================================================================================================
 -- 历史身份链接表
-drop table if exists `act_hi_identitylink`;
+DROP TABLE IF EXISTS `act_hi_identitylink`;
 CREATE TABLE `act_hi_identitylink`
 (
     `id_`           varchar(64) NOT NULL COMMENT '主键',
@@ -165,7 +165,7 @@ CREATE TABLE `act_hi_identitylink`
   COLLATE = utf8mb4_general_ci COMMENT ='历史身份链接表';
 -- ================================================================================================================================
 -- 历史流程实例表
-drop table if exists `act_hi_procinst`;
+DROP TABLE IF EXISTS `act_hi_procinst`;
 CREATE TABLE `act_hi_procinst`
 (
     `id_`                        varchar(64) NOT NULL COMMENT '主键',
@@ -191,7 +191,7 @@ CREATE TABLE `act_hi_procinst`
   COLLATE = utf8mb4_general_ci COMMENT ='历史流程实例表';
 -- ================================================================================================================================
 -- 历史任务实例表
-drop table if exists `act_hi_taskinst`;
+DROP TABLE IF EXISTS `act_hi_taskinst`;
 CREATE TABLE `act_hi_taskinst`
 (
     `id_`             varchar(64) NOT NULL COMMENT '主键',
@@ -221,7 +221,7 @@ CREATE TABLE `act_hi_taskinst`
   COLLATE = utf8mb4_general_ci COMMENT ='历史任务实例表';
 -- ================================================================================================================================
 -- 历史变量表
-drop table if exists `act_hi_varinst`;
+DROP TABLE IF EXISTS `act_hi_varinst`;
 CREATE TABLE `act_hi_varinst`
 (
     `id_`                varchar(64)  NOT NULL COMMENT '主键',
@@ -247,7 +247,7 @@ CREATE TABLE `act_hi_varinst`
   COLLATE = utf8mb4_general_ci COMMENT ='历史变量表';
 -- ================================================================================================================================
 -- 流程定义信息表
-drop table if exists `act_procdef_info`;
+DROP TABLE IF EXISTS `act_procdef_info`;
 CREATE TABLE `act_procdef_info`
 (
     `id_`           varchar(64) NOT NULL COMMENT '主键',
@@ -265,7 +265,7 @@ CREATE TABLE `act_procdef_info`
   COLLATE = utf8mb4_general_ci COMMENT ='流程定义信息表';
 -- ================================================================================================================================
 -- 流程部署表
-drop table if exists `act_re_deployment`;
+DROP TABLE IF EXISTS `act_re_deployment`;
 CREATE TABLE `act_re_deployment`
 (
     `id_`                      varchar(64) NOT NULL COMMENT '主键',
@@ -283,7 +283,7 @@ CREATE TABLE `act_re_deployment`
   COLLATE = utf8mb4_general_ci COMMENT ='流程部署表';
 -- ================================================================================================================================
 -- 流程模型表
-drop table if exists `act_re_model`;
+DROP TABLE IF EXISTS `act_re_model`;
 CREATE TABLE `act_re_model`
 (
     `id_`                           varchar(64) NOT NULL COMMENT '主键',
@@ -311,7 +311,7 @@ CREATE TABLE `act_re_model`
   COLLATE = utf8mb4_general_ci COMMENT ='流程模型表';
 -- ================================================================================================================================
 -- 流程定义表
-drop table if exists `act_re_procdef`;
+DROP TABLE IF EXISTS `act_re_procdef`;
 CREATE TABLE `act_re_procdef`
 (
     `id_`                     varchar(64)  NOT NULL COMMENT '主键 ( 规则: 流程定义 key:流程定义版本:生成的 id ) ',
@@ -337,7 +337,7 @@ CREATE TABLE `act_re_procdef`
   COLLATE = utf8mb4_general_ci COMMENT ='流程定义表';
 -- ================================================================================================================================
 -- 作业死亡信息表
-drop table if exists `act_ru_deadletter_job`;
+DROP TABLE IF EXISTS `act_ru_deadletter_job`;
 CREATE TABLE `act_ru_deadletter_job`
 (
     `id_`                  varchar(64)  NOT NULL COMMENT '主键',
@@ -368,7 +368,7 @@ CREATE TABLE `act_ru_deadletter_job`
   COLLATE = utf8mb4_general_ci COMMENT ='作业死亡信息表';
 -- ================================================================================================================================
 -- 事件订阅表
-drop table if exists `act_ru_event_subscr`;
+DROP TABLE IF EXISTS `act_ru_event_subscr`;
 CREATE TABLE `act_ru_event_subscr`
 (
     `id_`            varchar(64)  NOT NULL COMMENT '主键',
@@ -391,7 +391,7 @@ CREATE TABLE `act_ru_event_subscr`
   COLLATE = utf8mb4_general_ci COMMENT ='事件订阅表';
 -- ================================================================================================================================
 -- 流程执行实例表
-drop table if exists `act_ru_execution`;
+DROP TABLE IF EXISTS `act_ru_execution`;
 CREATE TABLE `act_ru_execution`
 (
     `id_`                   varchar(64) NOT NULL COMMENT '主键',
@@ -441,7 +441,7 @@ CREATE TABLE `act_ru_execution`
   COLLATE = utf8mb4_general_ci COMMENT ='流程执行实例表';
 -- ================================================================================================================================
 -- 身份链接表
-drop table if exists `act_ru_identitylink`;
+DROP TABLE IF EXISTS `act_ru_identitylink`;
 CREATE TABLE `act_ru_identitylink`
 (
     `id_`           varchar(64) NOT NULL COMMENT '主键',
@@ -466,7 +466,7 @@ CREATE TABLE `act_ru_identitylink`
   COLLATE = utf8mb4_general_ci COMMENT ='身份链接表';
 -- ================================================================================================================================
 -- 集成综合表
-drop table if exists `act_ru_integration`;
+DROP TABLE IF EXISTS `act_ru_integration`;
 CREATE TABLE `act_ru_integration`
 (
     `id_`                  varchar(64) NOT NULL COMMENT '主键',
@@ -487,7 +487,7 @@ CREATE TABLE `act_ru_integration`
   COLLATE = utf8mb4_general_ci COMMENT ='集成综合表';
 -- ================================================================================================================================
 -- 定时任务表
-drop table if exists `act_ru_job`;
+DROP TABLE IF EXISTS `act_ru_job`;
 CREATE TABLE `act_ru_job`
 (
     `id_`                  varchar(64)  NOT NULL COMMENT '主键',
@@ -521,7 +521,7 @@ CREATE TABLE `act_ru_job`
   COLLATE = utf8mb4_general_ci COMMENT ='定时任务表';
 -- ================================================================================================================================
 -- 作业暂停表
-drop table if exists `act_ru_suspended_job`;
+DROP TABLE IF EXISTS `act_ru_suspended_job`;
 CREATE TABLE `act_ru_suspended_job`
 (
     `id_`                  varchar(64)  NOT NULL COMMENT '主键',
@@ -553,7 +553,7 @@ CREATE TABLE `act_ru_suspended_job`
   COLLATE = utf8mb4_general_ci COMMENT ='作业暂停表';
 -- ================================================================================================================================
 -- 任务数据表
-drop table if exists `act_ru_task`;
+DROP TABLE IF EXISTS `act_ru_task`;
 CREATE TABLE `act_ru_task`
 (
     `id_`               varchar(64) NOT NULL COMMENT '主键',
@@ -591,7 +591,7 @@ CREATE TABLE `act_ru_task`
   COLLATE = utf8mb4_general_ci COMMENT ='任务数据表';
 -- ================================================================================================================================
 -- 定时器作业表
-drop table if exists `act_ru_timer_job`;
+DROP TABLE IF EXISTS `act_ru_timer_job`;
 CREATE TABLE `act_ru_timer_job`
 (
     `id_`                  varchar(64)  NOT NULL COMMENT '主键',
@@ -625,7 +625,7 @@ CREATE TABLE `act_ru_timer_job`
   COLLATE = utf8mb4_general_ci COMMENT ='定时器作业表';
 -- ================================================================================================================================
 -- 运行时流程变量数据表
-drop table if exists `act_ru_variable`;
+DROP TABLE IF EXISTS `act_ru_variable`;
 CREATE TABLE `act_ru_variable`
 (
     `id_`           varchar(64)  NOT NULL COMMENT '主键',

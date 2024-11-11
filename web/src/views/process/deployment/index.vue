@@ -20,7 +20,7 @@
       <!-- 新增按钮区域 -->
       <el-row class="content-card-row">
         <el-button
-          icon="Plus"
+          icon="Upload"
           type="primary"
           plain
           @click="handlerUpload"

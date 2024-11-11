@@ -153,6 +153,8 @@ const handlerSave = async (close?: boolean) => {
     // 可以点保存查看下控制台 xml
     const {xml} = await bpmnModeler.value.saveXML();
     const {svg} = await bpmnModeler.value.saveSVG();
+    console.log('xml:', xml);
+    console.log('svg:', svg);
     const res = await save(String(modelId), {xml, svg});
     if (res.code === 200 && res.data) {
       ElMessage({message: res.msg, type: 'success'});

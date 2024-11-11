@@ -2,7 +2,7 @@ activiti:
   # 整合模型相关信息配置
   model:
     # 导出模型时是否导出流程 svg 图片, 为 true 时流程文件和流程图片压缩 zip 导出
-    export-svg: true
+    export-editor-source-extra: true
   # 整合部署相关信息配置
   deployment:
     # 是否过滤重复, 默认为 false, 防止资源没有发生变化而再次执行部署方法产生的重复部署

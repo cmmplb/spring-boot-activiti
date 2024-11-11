@@ -3,7 +3,7 @@ package io.github.cmmplb.activiti.configuration;
 import io.github.cmmplb.activiti.security.filter.AuthenticationFilter;
 import io.github.cmmplb.activiti.security.handler.AccessDeniedHandler;
 import io.github.cmmplb.activiti.security.handler.ResourceAuthenticationEntryPoint;
-import io.github.cmmplb.activiti.service.UserService;
+import io.github.cmmplb.activiti.service.sys.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,7 +41,10 @@ public class WebSecurityConfigurer {
         // 配置请求的权限
         http.authorizeHttpRequests(registry -> {
                     // 配置不需要安全拦截url
-                    registry.antMatchers("/authentication/login").permitAll();
+                    registry.antMatchers("/authentication/login",
+                            // swagger 资源放行
+                            "/doc.html", "/webjars/css/**", "/webjars/js/**", "/favicon.ico", "/swagger-resources", "/v2/api-docs"
+                    ).permitAll();
                     // 其他路径都要进行拦截
                     registry.anyRequest().authenticated();
                 }

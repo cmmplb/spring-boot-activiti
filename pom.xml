@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <!-- 指定当前POM模型的版本 -->
     <modelVersion>4.0.0</modelVersion>
-    <!-- 项目ID，项目坐标核心元素，项目组织唯一的标识符，实际对应JAVA的包的结构，是main目录里java的目录结构。 -->
+    <!-- 项目ID, 项目坐标核心元素, 项目组织唯一的标识符, 实际对应JAVA的包的结构, 是main目录里java的目录结构 -->
     <groupId>io.github.cmmplb.activiti</groupId>
     <!-- 项目的唯一的标识符，实际对应项目的名称，就是项目根目录的名称。 -->
     <artifactId>spring-boot-activiti</artifactId>
     <!-- 项目版本 -->
     <version>1.0.0</version>
-    <!-- 项目的打包类型：pom、jar、war -->
+    <!-- 项目的打包类型: pom, jar, war -->
     <packaging>jar</packaging>
     <!-- 项目名称 -->
     <name>${project.artifactId}</name>
@@ -190,7 +190,10 @@
             <artifactId>mapstruct-jdk8</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
-        <!-- 配置文件处理器=》配置文件提示工具，当你在 application.yml 或者 application.properties 中输入时，会有相应的提示，方便我们写配置文件。原理是会自动给 @ConfigurationProperties 注解的类生成一个元数据信息的 json 文件，开发工具比如 idea 会自动扫描识别这个 json 然后在你写配置文件的时候给予提示。 -->
+        <!--
+            配置文件处理器=》配置文件提示工具, 当你在 application.yml 或者 application.properties 中输入时, 会有相应的提示, 方便我们写配置文件.
+            原理是会自动给 @ConfigurationProperties 注解的类生成一个元数据信息的 json 文件，开发工具比如 idea 会自动扫描识别这个 json 然后在你写配置文件的时候给予提示
+        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -207,11 +210,11 @@
         <finalName>${project.artifactId}:${project.version}</finalName>
         <directory>${project.basedir}/target</directory>
 
-        <!-- 默认情况下，Maven会从项目的src/main/resources目录下查找资源,让yml能引用maven变量@xxx@ -->
+        <!-- 默认情况下, Maven 会从项目的 src/main/resources 目录下查找资源,让 yml 能引用 maven 变量 @xxx@ -->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <!-- 替换目录下${}解析的变量 -->
+                <!-- 替换目录下 ${} 解析的变量 -->
                 <filtering>true</filtering>
             </resource>
         </resources>
@@ -260,7 +263,7 @@
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok-mapstruct-binding</artifactId>
-                                <!-- 如果是0.1.0可能出现实现类只创建对象，没有set赋值 -->
+                                <!-- 如果是 0.1.0 可能出现实现类只创建对象, 没有set赋值 -->
                                 <version>${lombok-mapstruct-binding.version}</version>
                             </path>
                             <path>

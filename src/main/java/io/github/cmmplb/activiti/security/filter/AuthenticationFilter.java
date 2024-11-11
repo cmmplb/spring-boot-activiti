@@ -61,6 +61,13 @@ public class AuthenticationFilter extends BasicAuthenticationFilter {
                     new UsernamePasswordAuthenticationToken(userDetails, "N/A", userDetails.getAuthorities());
             // 将用户信息放入到 SecurityContext 中
             SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+            String prefix = SecurityConstant.AUTHORIZATION_PREFIX + authorization;
+            try {
+                // token 续期
+                TimeExpiredPoolCacheUtil.getInstance().put(prefix, JSON.toJSONString(userDetails), 30 * 60 * 1000L);
+            } catch (Exception e) {
+                throw new BusinessException("设置缓存信息失败");
+            }
         }
         chain.doFilter(request, response);
     }

@@ -21,7 +21,7 @@ public class ActivitiConfiguration {
      * 配置密码编码器，负责用户密码的加密, 放到这个配置类声明的原因是防止嵌套依赖
      * The dependencies of some of the beans in the application context form a cycle:
      * ┌─────┐
-     * |  webSecurityConfigurer (field private io.github.cmmplb.activiti.service.UserService io.github.cmmplb.activiti.configuration.WebSecurityConfigurer.userService)
+     * |  webSecurityConfigurer (field private io.github.cmmplb.activiti.service.sys.UserService io.github.cmmplb.activiti.configuration.WebSecurityConfigurer.userService)
      * ↑     ↓
      * |  userServiceImpl (field private org.springframework.security.crypto.password.PasswordEncoder io.github.cmmplb.activiti.service.impl.UserServiceImpl.passwordEncoder)
      * └─────┘

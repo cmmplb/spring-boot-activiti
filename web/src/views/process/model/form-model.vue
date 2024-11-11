@@ -10,7 +10,6 @@
         :rules="rules"
       >
       </Form>
-
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="handlerCancel">取 消</el-button>
@@ -83,13 +82,6 @@ const dataFormItems = reactive<FormItem[]>([
   {
     prop: 'author',
     label: '模型作者',
-    // 只有 activiti-modeler 才需要填写作者，bpmn-js 没有保存作者的属性
-    conditions: [
-      {
-        prop: 'designType',
-        value: 1
-      }
-    ],
     placeholder: '请输入模型作者'
   },
   {
@@ -99,10 +91,16 @@ const dataFormItems = reactive<FormItem[]>([
     placeholder: '请输入模型描述'
   }
 ]);
+
 // 表单校验规则
 const rules = reactive<FormRules<ModelDTO>>({
   key: [
     {required: true, message: '请输入模型关键字', trigger: 'blur'},
+    {
+      pattern: '^[a-zA-Z_][a-zA-Z0-9\\.\\-\\_]*$',
+      message: '模型关键字必须以下划线或字母开头, 后接 XML 规范中允许的任意字母, 数字, ".", "-" 和下划线',
+      trigger: 'blur'
+    },
     {min: 1, max: 255, message: '模型关键字长度限制 255', trigger: 'blur'}
   ],
   name: [

@@ -19,7 +19,15 @@
 </template>
 
 <script setup lang="ts">
+
+import {useRouter} from 'vue-router';
+import constant from '@/const/constant.ts';
+
+const router = useRouter();
+
 const logout = () => {
+  localStorage.removeItem(constant.authorizationPrefix);
+  router.push({path: '/login'});
 };
 </script>
 

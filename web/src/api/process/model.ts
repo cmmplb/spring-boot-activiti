@@ -51,6 +51,16 @@ export const getInfoById = (id: string) => {
 };
 
 /**
+ * 导入流程模型文件/图片
+ */
+export const importModel = (designType: number, data: FormData) => {
+  return request.post<Result<boolean>>({
+    url: '/model/import/' + designType,
+    data
+  });
+};
+
+/**
  * 导出流程模型文件
  */
 export const exportModel = (id: string) => {

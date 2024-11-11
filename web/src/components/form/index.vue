@@ -34,7 +34,7 @@
                        :inactive-icon="formItem.suffixIcon"></el-switch>
           </template>
           <template v-if="formItem.type === 'radio'">
-            <el-radio-group v-model="form.designType" v-for="option in formItem.options">
+            <el-radio-group v-model="form[formItem.prop]" v-for="option in formItem.options">
               <el-radio :key="option.value" :value="option.value">{{ option.label }}</el-radio>
             </el-radio-group>
           </template>

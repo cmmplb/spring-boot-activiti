@@ -36,7 +36,7 @@
     <!-- 事务切面配置 -->
     <aop:config>
         <aop:pointcut
-                expression="execution(* io.github.cmmplb.activiti.service.impl..*.*(..))"
+                expression="execution(* io.github.cmmplb.activiti.service.*.impl..*.*(..))"
                 id="txPointcut"/>
         <!-- 指定 txAdvice 通知应用于 txPointcut 切点定义的所有方法上 -->
         <aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
