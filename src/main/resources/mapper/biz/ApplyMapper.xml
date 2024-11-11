@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.cmmplb.activiti.dao.biz.ApplyMapper">
+  <resultMap id="BaseResultMap" type="io.github.cmmplb.activiti.domain.entity.biz.Apply">
+    <!--@mbg.generated-->
+    <!--@Table `biz_apply`-->
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="title" jdbcType="VARCHAR" property="title" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="type" jdbcType="TINYINT" property="type" />
+    <result column="business_id" jdbcType="BIGINT" property="businessId" />
+    <result column="status" jdbcType="TINYINT" property="status" />
+    <result column="def_key" jdbcType="VARCHAR" property="defKey" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    `id`, `title`, `user_id`, `type`, `business_id`, `status`, `def_key`, `create_time`, 
+    `update_time`
+  </sql>
+</mapper>
