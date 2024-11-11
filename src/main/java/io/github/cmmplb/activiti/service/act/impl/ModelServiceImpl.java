@@ -436,8 +436,6 @@ public class ModelServiceImpl implements ModelService {
         try {
             // 导出模型时是否导出流程图片, 为 true 时流程文件和流程图片压缩成 zip 导出
             if (activitiProperties.getModel().isExportEditorSourceExtra()) {
-                // 获取流程图片, activiti modeler 和 bpmn-js 图片都是将 svg 转为 png 存储
-                byte[] pngData = repositoryService.getModelEditorSourceExtra(id);
                 // 用于部署上传流程文件测试 ACT_RE_PROCDEF 表 DGRM_RESOURCE_NAME_ 字段
                 String filename = model.getName() + ".zip";
                 response.setContentType("application/octet-stream");
@@ -445,8 +443,13 @@ public class ModelServiceImpl implements ModelService {
                 ZipOutputStream zipOutputStream = new ZipOutputStream(response.getOutputStream(), StandardCharsets.UTF_8);
                 // 压缩流程文件, 通过流程文件需要满足这个后缀条件: "bpmn20.xml", "bpmn"
                 FileUtil.toZip(zipOutputStream, model.getName() + ".bpmn20.xml", new ByteArrayInputStream(xmlBytes));
-                // 压缩流程 svg 图片, 图片需要满足: "png", "jpg", "gif", "svg"
-                FileUtil.toZip(zipOutputStream, model.getName() + ".png", new ByteArrayInputStream(pngData));
+
+                // 获取流程图片, activiti modeler 和 bpmn-js 图片都是将 svg 转为 png 存储
+                byte[] pngData = repositoryService.getModelEditorSourceExtra(id);
+                if (Arrays.isNullOrEmpty(pngData)) {
+                    // 压缩流程 svg 图片, 图片需要满足: "png", "jpg", "gif", "svg"
+                    FileUtil.toZip(zipOutputStream, model.getName() + ".png", new ByteArrayInputStream(pngData));
+                }
             } else {
                 ByteArrayInputStream in = new ByteArrayInputStream(xmlBytes);
                 String filename = model.getName() + ".bpmn20.xml";

@@ -207,7 +207,7 @@
 
     <build>
         <!-- 插件管理 -->
-        <finalName>${project.artifactId}:${project.version}</finalName>
+        <finalName>${project.artifactId}</finalName>
         <directory>${project.basedir}/target</directory>
 
         <!-- 默认情况下, Maven 会从项目的 src/main/resources 目录下查找资源,让 yml 能引用 maven 变量 @xxx@ -->
