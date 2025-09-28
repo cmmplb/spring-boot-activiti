@@ -12,7 +12,17 @@ import org.springframework.beans.factory.InitializingBean;
 
 public abstract class ApplyAbstractHandler<M extends BaseMapper<T>, T> extends ServiceImpl<M, T> implements InitializingBean {
 
-    public Long invoke(String jsonParams) throws Exception {
+    public Long save(String jsonParams) throws Exception {
+        // 子类未实现该方法就不让其调用抛出异常
+        throw new UnsupportedOperationException();
+    }
+
+    public String getDetailsById(Long businessId) {
+        // 子类未实现该方法就不让其调用抛出异常
+        throw new UnsupportedOperationException();
+    }
+
+    public void deleteById(Long id) {
         // 子类未实现该方法就不让其调用抛出异常
         throw new UnsupportedOperationException();
     }

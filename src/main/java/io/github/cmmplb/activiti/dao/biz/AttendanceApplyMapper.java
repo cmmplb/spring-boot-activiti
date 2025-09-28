@@ -2,6 +2,8 @@ package io.github.cmmplb.activiti.dao.biz;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import io.github.cmmplb.activiti.domain.entity.biz.AttendanceApply;
+import io.github.cmmplb.activiti.domain.vo.biz.AttendanceApplyDetailsVO;
+import org.apache.ibatis.annotations.Param;
 
 /**
 * @author penglibo
@@ -9,4 +11,6 @@ import io.github.cmmplb.activiti.domain.entity.biz.AttendanceApply;
 * @since jdk 1.8
 */
 public interface AttendanceApplyMapper extends BaseMapper<AttendanceApply> {
+
+    AttendanceApplyDetailsVO selectDetailsById(@Param("id") Long id);
 }

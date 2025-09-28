@@ -20,6 +20,9 @@ public class ApplyQueryDTO extends QueryPageBean {
     @ApiModelProperty(value = "类型: 1-考勤管理; 2-行政管理; 3-财务管理; 4-人事管理; 5-...", example = "1")
     private Byte type;
 
+    @ApiModelProperty(value = "对应不同业务的子类型, ps: 请假, 办公物品领用, 费用报销, 人员离职...", example = "1")
+    private Byte subtype;
+
     @ApiModelProperty(value = "流程状态:0-进行中;1-已完成;2-已驳回;3-已撤销;", example = "1")
     private Byte status;
 

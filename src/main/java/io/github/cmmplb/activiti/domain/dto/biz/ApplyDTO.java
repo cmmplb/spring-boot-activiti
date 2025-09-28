@@ -23,13 +23,6 @@ public class ApplyDTO {
     @ApiModelProperty(value = "对应不同业务的子类型, ps: 请假, 办公物品领用, 费用报销, 人员离职...", example = "1")
     private Byte subtype;
 
-    @ApiModelProperty(value = "流程状态:0-进行中;1-已完成;2-已驳回;3-已撤销;", example = "1")
-    private Byte status;
-
-    @ApiModelProperty(value = "申请人id", example = "1")
-    private Long userId;
-
-    @ApiModelProperty(value = "请假申请参数")
-    private LeaveApplyDTO leaveApply;
+    @ApiModelProperty(value = "考勤申请请求参数")
+    private AttendanceApplyDTO attendanceApplyDTO;
 }
-
